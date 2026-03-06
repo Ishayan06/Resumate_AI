@@ -6,6 +6,8 @@ require('dotenv').config();
 const testRoutes = require('./routes/testRoutes');
 const questionRoutes = require('./routes/questionRoutes');
 const authRoutes = require('./routes/authRoutes');
+const resumeRoutes = require('./routes/resumeRoutes');
+const interviewRoutes = require('./routes/interviewRoutes'); // Add this
 
 const app = express();
 
@@ -17,6 +19,8 @@ app.use(express.json());
 app.use('/api', testRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/resume', resumeRoutes);
+app.use('/api/interview', interviewRoutes); // Add this
 
 const PORT = process.env.PORT || 3001;
 
