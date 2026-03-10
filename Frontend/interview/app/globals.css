@@ -1,6 +1,5 @@
 @import "tailwindcss";
 
-
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -46,44 +45,10 @@
   --radius-4xl: calc(var(--radius) + 16px);
 }
 
-:root {
-  --radius: 0.625rem;
-  /* Black/Dark theme - even in light mode */
-  --background: #000000;
-  --foreground: #ffffff;
-  --card: #111111;
-  --card-foreground: #ffffff;
-  --popover: #111111;
-  --popover-foreground: #ffffff;
-  --primary: #4f46e5;
-  --primary-foreground: #ffffff;
-  --secondary: #1f1f1f;
-  --secondary-foreground: #ffffff;
-  --muted: #1a1a1a;
-  --muted-foreground: #a0a0a0;
-  --accent: #2d2d2d;
-  --accent-foreground: #ffffff;
-  --destructive: #7f1d1d;
-  --border: #2d2d2d;
-  --input: #2d2d2d;
-  --ring: #4f46e5;
-  --chart-1: #4f46e5;
-  --chart-2: #7c3aed;
-  --chart-3: #2563eb;
-  --chart-4: #8b5cf6;
-  --chart-5: #6d28d9;
-  --sidebar: #0a0a0a;
-  --sidebar-foreground: #ffffff;
-  --sidebar-primary: #4f46e5;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1f1f1f;
-  --sidebar-accent-foreground: #ffffff;
-  --sidebar-border: #2d2d2d;
-  --sidebar-ring: #4f46e5;
-}
-
+/* Single unified theme — dark is identical so no need for a separate .dark block */
+:root,
 .dark {
-  /* Keep the same - already black */
+  --radius: 0.625rem;
   --background: #000000;
   --foreground: #ffffff;
   --card: #111111;
@@ -123,5 +88,20 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Promote body to its own compositor layer for smoother paints */
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeSpeed;
   }
+  /* GPU-accelerated scrolling on webkit */
+  * {
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@font-face {
+  font-family: 'Climate Crisis';
+  src: url('/fonts/ClimateCrisis-Variable.woff2') format('woff2');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
 }

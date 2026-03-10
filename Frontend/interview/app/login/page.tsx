@@ -34,7 +34,7 @@ export default function Login() {
 
   return (
     <div className="max-w-md mx-auto">
-      <div className="bg-white rounded-xl shadow-lg p-8">
+      <div className="bg-white text-black rounded-xl shadow-lg p-8">
         <h2 className="text-2xl font-bold text-center mb-6">Login to Your Account</h2>
         
         <form onSubmit={handleSubmit} className="space-y-4">
