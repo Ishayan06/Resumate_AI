@@ -1,0 +1,18 @@
+# dependencies
+node_modules/
+
+# env files (VERY IMPORTANT)
+.env
+Backend/.env
+Frontend/interview/.env
+
+# logs
+*.log
+
+# build outputs
+Frontend/.next/
+Frontend/out/
+Backend/dist/
+
+# OS files
+.DS_Store
