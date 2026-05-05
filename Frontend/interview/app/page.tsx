@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { isAuthenticated } from '@/lib/auth';
@@ -10,9 +10,11 @@ export default function Home() {
   const router = useRouter();
   const authenticated = isAuthenticated();
 
-  if (authenticated) {
-    router.push('/dashboard');
-  }
+  useEffect(() => {
+    if (authenticated) {
+      router.push('/dashboard');
+    }
+  }, [authenticated]);
 
   return (
     <main className="min-h-screen flex flex-col items-center">
@@ -41,7 +43,7 @@ export default function Home() {
 
           {/* Primary - Start Interview */}
           <Link
-            href="/interview"
+            href="/login"
             className="cursor-target group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-10 py-4 text-sm font-semibold uppercase tracking-widest text-white transition-all duration-300"
             style={{ fontFamily: "'DM Mono', monospace" }}
           >
@@ -146,7 +148,6 @@ export default function Home() {
               {/* Icon block */}
               <div className="relative flex-shrink-0 flex items-center justify-center h-24 w-24 rounded-2xl border border-indigo-500/20 bg-indigo-600/10">
                 {icon}
-                {/* Step number badge */}
                 <span
                   className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-violet-600 text-[11px] font-bold text-white shadow-lg shadow-indigo-500/30"
                   style={{ fontFamily: "'DM Mono', monospace" }}
@@ -204,7 +205,7 @@ export default function Home() {
           </p>
         </div>
 
-        {/* Cards grid — mixed sizes */}
+        {/* Cards grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {[
             {
@@ -218,7 +219,6 @@ export default function Home() {
               title: 'Speak Your Answers',
               desc: 'Record responses out loud. Practice the real thing, not just typing.',
               accent: 'from-indigo-500/20 to-violet-500/10',
-              large: true,
             },
             {
               icon: (
@@ -230,7 +230,6 @@ export default function Home() {
               title: 'Resume-Tailored Questions',
               desc: 'Every question built from your actual experience.',
               accent: 'from-violet-500/20 to-indigo-500/10',
-              large: false,
             },
             {
               icon: (
@@ -242,7 +241,6 @@ export default function Home() {
               title: 'AI Feedback in Seconds',
               desc: 'Get scored immediately with improvement tips.',
               accent: 'from-sky-500/20 to-indigo-500/10',
-              large: false,
             },
             {
               icon: (
@@ -255,7 +253,6 @@ export default function Home() {
               title: 'All Roles Covered',
               desc: 'Frontend, Backend, DSA, System Design, Behavioural — pick your track.',
               accent: 'from-emerald-500/20 to-indigo-500/10',
-              large: false,
             },
             {
               icon: (
@@ -267,7 +264,6 @@ export default function Home() {
               title: 'Track Your Growth',
               desc: 'See your scores improve over sessions. Know exactly where you stand.',
               accent: 'from-amber-500/20 to-indigo-500/10',
-              large: false,
             },
             {
               icon: (
@@ -280,30 +276,21 @@ export default function Home() {
               title: 'Real Interview Pressure',
               desc: 'Countdown timers simulate actual interview conditions.',
               accent: 'from-rose-500/20 to-indigo-500/10',
-              large: true,
             },
-          ].map(({ icon, tag, title, desc, accent, large }) => (
+          ].map(({ icon, tag, title, desc, accent }) => (
             <div
               key={title}
-              className={`group relative flex flex-col gap-5 rounded-2xl border border-white/5 p-7 backdrop-blur-sm overflow-hidden transition-all duration-400 hover:border-white/10 hover:-translate-y-0.5 ${large ? 'sm:col-span-1' : ''}`}
+              className="group relative flex flex-col gap-5 rounded-2xl border border-white/5 p-7 backdrop-blur-sm overflow-hidden transition-all duration-400 hover:border-white/10 hover:-translate-y-0.5"
             >
-              {/* Gradient background */}
               <div className={`absolute inset-0 bg-gradient-to-br ${accent} opacity-60 transition-opacity duration-400 group-hover:opacity-100`} />
-
-              {/* Top row */}
               <div className="relative flex items-start justify-between">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl border border-white/10 bg-white/5">
                   {icon}
                 </div>
-                <span
-                  className="text-[9px] uppercase tracking-[0.2em] text-white/30 mt-1"
-                  style={{ fontFamily: "'DM Mono', monospace" }}
-                >
+                <span className="text-[9px] uppercase tracking-[0.2em] text-white/30 mt-1" style={{ fontFamily: "'DM Mono', monospace" }}>
                   {tag}
                 </span>
               </div>
-
-              {/* Content */}
               <div className="relative flex flex-col gap-2">
                 <h3 className="text-base font-semibold text-white leading-snug" style={{ fontFamily: "'Sora', sans-serif" }}>
                   {title}
@@ -312,8 +299,6 @@ export default function Home() {
                   {desc}
                 </p>
               </div>
-
-              {/* Bottom arrow */}
               <div className="relative flex items-center gap-2 mt-auto">
                 <div className="h-px flex-1 bg-white/5 group-hover:bg-white/10 transition-colors duration-300" />
                 <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3 text-white/20 group-hover:text-white/40 transition-colors duration-300 group-hover:translate-x-0.5 transform">
@@ -343,7 +328,6 @@ export default function Home() {
         </div>
 
       </section>
-
 
     </main>
   );

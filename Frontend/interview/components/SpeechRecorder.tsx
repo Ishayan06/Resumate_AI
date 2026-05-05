@@ -1,12 +1,15 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { MicrophoneIcon, StopIcon } from '@heroicons/react/24/solid';
+import React, { useEffect, useRef } from 'react';
+import {
+  MicrophoneIcon,
+  StopIcon
+} from '@heroicons/react/24/solid';
 
 interface SpeechRecorderProps {
   onTranscript: (text: string) => void;
   isListening: boolean;
-  setIsListening: (isListening: boolean) => void;
+  setIsListening: (value: boolean) => void;
 }
 
 declare global {
@@ -16,90 +19,151 @@ declare global {
   }
 }
 
-export default function SpeechRecorder({ onTranscript, isListening, setIsListening }: SpeechRecorderProps) {
-  const [recognition, setRecognition] = useState<any>(null);
-  const [finalTranscript, setFinalTranscript] = useState('');
+export default function SpeechRecorder({
+  onTranscript,
+  isListening,
+  setIsListening
+}: SpeechRecorderProps) {
+
+  const recognitionRef = useRef<any>(null);
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-      
-      if (SpeechRecognition) {
-        const recognitionInstance = new SpeechRecognition();
-        recognitionInstance.continuous = true;
-        recognitionInstance.interimResults = true;
-        recognitionInstance.lang = 'en-US';
 
-        recognitionInstance.onresult = (event: any) => {
-          let interimTranscript = '';
-          let final = '';
+    if (typeof window === 'undefined') return;
 
-          for (let i = event.resultIndex; i < event.results.length; i++) {
-            const transcript = event.results[i][0].transcript;
-            if (event.results[i].isFinal) {
-              final += transcript + ' ';
-            } else {
-              interimTranscript += transcript;
-            }
-          }
+    const SpeechRecognition =
+      window.SpeechRecognition ||
+      window.webkitSpeechRecognition;
 
-          if (final) {
-            setFinalTranscript(prev => prev + final);
-            onTranscript(finalTranscript + final + interimTranscript);
-          } else {
-            onTranscript(finalTranscript + interimTranscript);
-          }
-        };
-
-        recognitionInstance.onerror = (event: any) => {
-          console.error('Speech recognition error:', event.error);
-          setIsListening(false);
-        };
-
-        recognitionInstance.onend = () => {
-          setIsListening(false);
-        };
-
-        setRecognition(recognitionInstance);
-      }
+    if (!SpeechRecognition) {
+      console.error('Speech recognition not supported');
+      return;
     }
-  }, []);
 
-  const toggleListening = () => {
+    const recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+
+    recognition.interimResults = true;
+
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event: any) => {
+
+      let transcript = '';
+
+      for (
+        let i = 0;
+        i < event.results.length;
+        i++
+      ) {
+        transcript += event.results[i][0].transcript + ' ';
+      }
+
+      onTranscript(transcript.trim());
+    };
+
+    recognition.onerror = (event: any) => {
+
+      console.error(
+        'Speech recognition error:',
+        event.error
+      );
+
+      if (
+        event.error !== 'no-speech' &&
+        event.error !== 'aborted'
+      ) {
+        setIsListening(false);
+      }
+    };
+
+    recognition.onend = () => {
+
+      // auto restart while listening
+      if (isListening) {
+        try {
+          recognition.start();
+        } catch (err) {}
+      }
+    };
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognition.stop();
+    };
+
+  }, [isListening, onTranscript, setIsListening]);
+
+  const toggleListening = async () => {
+
+    const recognition = recognitionRef.current;
+
     if (!recognition) {
-      alert('Speech recognition is not supported in your browser. Please use Chrome or Edge.');
+
+      alert(
+        'Speech recognition is not supported in your browser. Use Chrome.'
+      );
+
       return;
     }
 
     if (isListening) {
+
       recognition.stop();
+
       setIsListening(false);
+
     } else {
-      setFinalTranscript('');
-      recognition.start();
-      setIsListening(true);
+
+      try {
+
+        await navigator.mediaDevices.getUserMedia({
+          audio: true
+        });
+
+        recognition.start();
+
+        setIsListening(true);
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert('Microphone permission denied');
+      }
     }
   };
 
   return (
     <div className="flex flex-col items-center space-y-4">
+
       <button
         onClick={toggleListening}
         className={`p-6 rounded-full transition-all transform hover:scale-110 ${
-          isListening 
-            ? 'bg-red-500 hover:bg-red-600 animate-pulse' 
+          isListening
+            ? 'bg-red-500 hover:bg-red-600 animate-pulse'
             : 'bg-indigo-600 hover:bg-indigo-700'
         }`}
       >
+
         {isListening ? (
           <StopIcon className="h-8 w-8 text-white" />
         ) : (
           <MicrophoneIcon className="h-8 w-8 text-white" />
         )}
+
       </button>
+
       <p className="text-sm text-gray-600">
-        {isListening ? 'Recording... Click to stop' : 'Click to start recording'}
+
+        {isListening
+          ? 'Recording... Click to stop'
+          : 'Click to start recording'}
+
       </p>
+
     </div>
   );
 }

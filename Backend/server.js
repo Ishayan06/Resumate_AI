@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const testAll = require('./startupTest');
 require('dotenv').config();
 
 // Import routes
@@ -21,9 +22,12 @@ app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
 app.use('/api/interview', interviewRoutes); // Add this
-
 const PORT = process.env.PORT || 3001;
-
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
+
+    // delay so server is ready
+    setTimeout(() => {
+        testAll();
+    }, 1000);
 });

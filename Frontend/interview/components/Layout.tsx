@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import PillNav from './PillNav';
 import BackgroundWrapper from './BackgroundWrapper';
 import CountUpIntro from './CountUpIntro';
@@ -14,7 +14,11 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [showIntro, setShowIntro] = useState(true);
   const [showMainContent, setShowMainContent] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
   const pathname = usePathname();
+  const router = useRouter();
+
   const hideNav = pathname === '/chatbot';
 
   // Desktop nav
@@ -31,9 +35,16 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     const checkScreenSize = () => {
       setIsMobile(window.innerWidth < 768);
     };
+
     checkScreenSize();
     window.addEventListener('resize', checkScreenSize);
+
     return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
+
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
   }, []);
 
   const handleIntroComplete = () => {
@@ -43,6 +54,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const hasSeenIntro = sessionStorage.getItem('hasSeenIntro');
+
     if (hasSeenIntro) {
       setShowIntro(false);
       setShowMainContent(true);
@@ -54,6 +66,12 @@ export default function Layout({ children }: { children: React.ReactNode }) {
       sessionStorage.setItem('hasSeenIntro', 'true');
     }
   }, [showIntro, showMainContent]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('token');
+    setIsLoggedIn(false);
+    router.push('/login');
+  };
 
   return (
     <>
@@ -77,6 +95,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           transition: font-variation-settings 0.4s ease, opacity 0.2s ease;
           padding: 0 0.25rem;
         }
+
         .brand-title:hover {
           font-variation-settings: 'YEAR' 1979;
           opacity: 0.85;
@@ -90,18 +109,25 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           border: 1.5px solid #4f6ef7;
           color: white;
           border-radius: 12px;
-          box-shadow: 0 0 10px rgba(79, 110, 247, 0.3), inset 0 0 10px rgba(79, 110, 247, 0.05);
+          box-shadow: 0 0 10px rgba(79, 110, 247, 0.3),
+            inset 0 0 10px rgba(79, 110, 247, 0.05);
           transition: box-shadow 0.3s ease, border-color 0.3s ease;
         }
+
         .login-btn:hover {
           border-color: #6b8bff;
-          box-shadow: 0 0 18px rgba(79, 110, 247, 0.6), inset 0 0 14px rgba(79, 110, 247, 0.1);
+          box-shadow: 0 0 18px rgba(79, 110, 247, 0.6),
+            inset 0 0 14px rgba(79, 110, 247, 0.1);
           background: transparent;
         }
       `}</style>
 
       {/* Global target cursor */}
-      <TargetCursor targetSelector=".cursor-target" spinDuration={3} hideDefaultCursor={false} />
+      <TargetCursor
+        targetSelector=".cursor-target"
+        spinDuration={3}
+        hideDefaultCursor={false}
+      />
 
       {showIntro && <CountUpIntro onComplete={handleIntroComplete} />}
 
@@ -114,39 +140,60 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
               {/* ── DESKTOP layout ── */}
               <div className="hidden md:grid md:grid-cols-3 md:items-center">
+
                 <div className="flex-shrink-0">
                   <Link href="/" className="brand-title cursor-target">
                     ResuMate
                   </Link>
                 </div>
+
                 <div className="flex justify-center brand-title">
                   <PillNav logo="/logo.avif" items={navItems} />
                 </div>
+
                 <div className="flex justify-end flex-shrink-0">
                   <Magnet padding={60} magnetStrength={3}>
-                    <Link
-                      href="/login"
-                      className="login-btn cursor-target inline-flex items-center justify-center h-[42px] px-8"
-                    >
-                      Interview
-                    </Link>
+
+                    {isLoggedIn ? (
+                      <button
+                        onClick={handleLogout}
+                        className="login-btn cursor-target inline-flex items-center justify-center h-[42px] px-8"
+                      >
+                        Logout
+                      </button>
+                    ) : (
+                      <Link
+                        href="/login"
+                        className="login-btn cursor-target inline-flex items-center justify-center h-[42px] px-8"
+                      >
+                        Login
+                      </Link>
+                    )}
+
                   </Magnet>
                 </div>
+
               </div>
 
               {/* ── MOBILE layout ── */}
               <div className="md:hidden flex flex-col space-y-4">
+
                 <div className="flex items-center gap-4">
+
                   <div className="flex-shrink-0">
                     <PillNav logo="/logo.avif" items={mobileNavItems} />
                   </div>
+
                   <div className="flex-1 flex justify-center">
                     <Link href="/" className="brand-title whitespace-nowrap">
                       ResuMate
                     </Link>
                   </div>
+
                   <div className="flex-shrink-0 w-[48px]" />
+
                 </div>
+
               </div>
 
             </div>
@@ -157,6 +204,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </main>
 
           <Toaster position="top-right" />
+
         </BackgroundWrapper>
       )}
     </>

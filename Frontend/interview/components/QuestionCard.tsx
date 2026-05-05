@@ -53,7 +53,7 @@ export default function QuestionCard({
           value={answer}
           onChange={(e) => onAnswerChange(e.target.value)}
           placeholder="Type your answer here..."
-          className="w-full h-32 p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+          className="w-full h-32 text-black p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
           disabled={isSubmitting}
         />
 
