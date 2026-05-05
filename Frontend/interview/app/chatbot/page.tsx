@@ -9,15 +9,12 @@ interface Message {
 }
 
 // ─── Lightweight Markdown Renderer ───────────────────────────────────────────
-// Handles: ## headers, **bold**, *italic*, `code`, ``` code blocks,
-//          - bullet lists, 1. numbered lists, blank-line paragraphs
 function renderMarkdown(text: string): React.ReactNode[] {
   const lines = text.split('\n');
   const nodes: React.ReactNode[] = [];
   let i = 0;
 
   const inlineFormat = (line: string, key: string | number): React.ReactNode => {
-    // Split on bold (**), italic (*), inline code (`)
     const parts = line.split(/(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g);
     return (
       <span key={key}>
@@ -47,7 +44,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
   while (i < lines.length) {
     const line = lines[i];
 
-    // Fenced code block
     if (line.trim().startsWith('```')) {
       const lang = line.trim().slice(3).trim();
       const codeLines: string[] = [];
@@ -77,31 +73,22 @@ function renderMarkdown(text: string): React.ReactNode[] {
       continue;
     }
 
-    // H1
     if (/^# /.test(line)) {
       nodes.push(<h1 key={i} style={{ fontSize: '18px', fontWeight: 700, color: 'rgba(255,255,255,0.95)', margin: '14px 0 6px' }}>{inlineFormat(line.slice(2), 'h1')}</h1>);
       i++; continue;
     }
-
-    // H2
     if (/^## /.test(line)) {
       nodes.push(<h2 key={i} style={{ fontSize: '15px', fontWeight: 600, color: 'rgba(255,255,255,0.90)', margin: '14px 0 4px', letterSpacing: '0.01em' }}>{inlineFormat(line.slice(3), 'h2')}</h2>);
       i++; continue;
     }
-
-    // H3
     if (/^### /.test(line)) {
       nodes.push(<h3 key={i} style={{ fontSize: '14px', fontWeight: 600, color: 'rgba(255,255,255,0.85)', margin: '10px 0 4px' }}>{inlineFormat(line.slice(4), 'h3')}</h3>);
       i++; continue;
     }
-
-    // Horizontal rule
     if (/^---+$/.test(line.trim())) {
       nodes.push(<hr key={i} style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.08)', margin: '12px 0' }} />);
       i++; continue;
     }
-
-    // Bullet list (collect consecutive items)
     if (/^[-*] /.test(line)) {
       const items: React.ReactNode[] = [];
       while (i < lines.length && /^[-*] /.test(lines[i])) {
@@ -115,8 +102,6 @@ function renderMarkdown(text: string): React.ReactNode[] {
       );
       continue;
     }
-
-    // Numbered list
     if (/^\d+\. /.test(line)) {
       const items: React.ReactNode[] = [];
       while (i < lines.length && /^\d+\. /.test(lines[i])) {
@@ -130,14 +115,10 @@ function renderMarkdown(text: string): React.ReactNode[] {
       );
       continue;
     }
-
-    // Blank line → small spacer
     if (line.trim() === '') {
       nodes.push(<div key={i} style={{ height: '8px' }} />);
       i++; continue;
     }
-
-    // Normal paragraph line
     nodes.push(
       <p key={i} style={{ margin: 0, lineHeight: '1.75', color: 'rgba(255,255,255,0.78)' }}>
         {inlineFormat(line, i)}
@@ -167,7 +148,6 @@ const MessageBubble = memo(({ msg, isLast }: { msg: Message; isLast: boolean }) 
         </div>
       </div>
     )}
-
     {msg.role === 'user' && (
       <div
         className="max-w-[90%] md:max-w-[80%] rounded-[20px] rounded-br-[6px] px-4 py-2.5 text-[15px] leading-7 text-white whitespace-pre-wrap"
@@ -214,6 +194,41 @@ const PARTICLE_CONFIG = {
   cameraDistance: 28,
   disableRotation: true,
 } as const;
+
+// ─── Voice-to-Text hook ───────────────────────────────────────────────────────
+function useSpeechRecognition(onResult: (text: string) => void) {
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const toggle = useCallback(() => {
+    const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SR) { alert('Speech recognition is not supported in this browser.'); return; }
+
+    if (listening) {
+      recognitionRef.current?.stop();
+      return;
+    }
+
+    const rec = new SR() as SpeechRecognition;
+    rec.lang = 'en-US';
+    rec.interimResults = false;
+    rec.maxAlternatives = 1;
+
+    rec.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = e.results[0][0].transcript;
+      onResult(transcript);
+    };
+    rec.onend = () => setListening(false);
+    rec.onerror = () => setListening(false);
+
+    recognitionRef.current = rec;
+    rec.start();
+    setListening(true);
+  }, [listening, onResult]);
+
+  return { listening, toggle };
+}
+// ─────────────────────────────────────────────────────────────────────────────
 
 export default function ChatPage() {
   const [messages, setMessages] = useState<Message[]>([
@@ -269,6 +284,12 @@ export default function ChatPage() {
     if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
   }, [sendMessage]);
 
+  // Voice-to-text: appends transcript to current input
+  const handleVoiceResult = useCallback((text: string) => {
+    setInput(prev => (prev ? prev + ' ' + text : text));
+  }, []);
+  const { listening, toggle: toggleMic } = useSpeechRecognition(handleVoiceResult);
+
   const canSend = input.trim().length > 0 && !loading;
 
   return (
@@ -286,6 +307,10 @@ export default function ChatPage() {
           0%, 60%, 100% { transform: translateY(0); opacity: 0.3; }
           30%            { transform: translateY(-4px); opacity: 1; }
         }
+        @keyframes micPulse {
+          0%, 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0.4); }
+          50%       { box-shadow: 0 0 0 6px rgba(239,68,68,0); }
+        }
         .input-glow:focus-within {
           box-shadow: 0 0 0 1px rgba(99,102,241,0.35), 0 4px 24px rgba(99,102,241,0.1);
         }
@@ -294,6 +319,10 @@ export default function ChatPage() {
           transform: scale(1.05);
         }
         .send-btn { transition: all 0.15s ease; }
+        .back-btn:hover { background: rgba(255,255,255,0.08) !important; }
+        .back-btn { transition: background 0.15s ease; }
+        .mic-btn { transition: all 0.15s ease; }
+        .mic-btn:hover { transform: scale(1.05); }
       `}</style>
 
       <div className="fixed inset-0 flex flex-col" style={{ background: '#0d0d0d' }}>
@@ -301,10 +330,30 @@ export default function ChatPage() {
           <Particles {...PARTICLE_CONFIG} />
         </div>
 
-        {/* Header */}
-        <div className="relative z-10 flex items-center justify-center py-4 border-b"
+        {/* ── Header ── */}
+        <div className="relative z-10 flex items-center justify-between py-4 px-4 border-b"
           style={{ borderColor: 'rgba(255,255,255,0.05)', background: 'rgba(13,13,13,0.8)', backdropFilter: 'blur(12px)' }}>
-          <div className="flex items-center gap-2.5">
+
+          {/* Back button */}
+          <a
+            href="/dashboard"
+            className="back-btn flex items-center gap-1.5 rounded-xl px-3 py-1.5"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.07)',
+              textDecoration: 'none',
+            }}
+          >
+            <svg width="13" height="13" viewBox="0 0 16 16" fill="none">
+              <path d="M10 13L5 8l5-5" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+            <span style={{ fontSize: '13px', color: 'rgba(255,255,255,0.40)', fontFamily: "'DM Sans', sans-serif" }}>
+              Dashboard
+            </span>
+          </a>
+
+          {/* Brand — centred */}
+          <div className="flex items-center gap-2.5 absolute left-1/2 -translate-x-1/2">
             <div className="h-6 w-6 rounded-full bg-indigo-500/20 border border-indigo-500/30 flex items-center justify-center">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
                 <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" stroke="#818cf8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
@@ -314,9 +363,12 @@ export default function ChatPage() {
               RESUMATE-AI
             </span>
           </div>
+
+          {/* Spacer to balance flex layout */}
+          <div style={{ width: '96px' }} />
         </div>
 
-        {/* Messages */}
+        {/* ── Messages ── */}
         <div ref={scrollRef} className="relative z-10 flex-1 overflow-y-auto">
           <div className="mx-auto w-full max-w-4xl px-6 py-8 flex flex-col gap-6">
             {messages.map((msg, i) => (
@@ -327,12 +379,13 @@ export default function ChatPage() {
           </div>
         </div>
 
-        {/* Input */}
+        {/* ── Input ── */}
         <div className="relative z-10"
           style={{ background: 'rgba(13,13,13,0.9)', backdropFilter: 'blur(16px)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
           <div className="mx-auto w-full max-w-4xl px-6 py-4">
             <div className="input-glow flex items-end gap-3 rounded-2xl px-4 py-3 transition-all duration-200"
               style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.09)' }}>
+
               <textarea
                 ref={textareaRef}
                 value={input}
@@ -343,6 +396,36 @@ export default function ChatPage() {
                 className="flex-1 resize-none bg-transparent outline-none leading-relaxed"
                 style={{ fontFamily: "'DM Sans', sans-serif", fontSize: '15px', color: 'rgba(255,255,255,0.85)', maxHeight: '160px', caretColor: '#818cf8' }}
               />
+
+              {/* Mic button */}
+              <button
+                onClick={toggleMic}
+                className="mic-btn flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-xl"
+                title={listening ? 'Stop recording' : 'Voice input'}
+                style={{
+                  background: listening ? 'rgba(239,68,68,0.25)' : 'rgba(255,255,255,0.06)',
+                  border: `1px solid ${listening ? 'rgba(239,68,68,0.5)' : 'rgba(255,255,255,0.08)'}`,
+                  animation: listening ? 'micPulse 1.2s ease-in-out infinite' : 'none',
+                  cursor: 'pointer',
+                }}
+              >
+                {listening ? (
+                  /* Stop/square icon when recording */
+                  <svg width="11" height="11" viewBox="0 0 16 16" fill="none">
+                    <rect x="3" y="3" width="10" height="10" rx="2" fill="rgba(239,68,68,0.9)"/>
+                  </svg>
+                ) : (
+                  /* Mic icon */
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none">
+                    <rect x="9" y="2" width="6" height="12" rx="3" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6"/>
+                    <path d="M5 10a7 7 0 0 0 14 0" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" strokeLinecap="round"/>
+                    <line x1="12" y1="17" x2="12" y2="21" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" strokeLinecap="round"/>
+                    <line x1="9" y1="21" x2="15" y2="21" stroke="rgba(255,255,255,0.45)" strokeWidth="1.6" strokeLinecap="round"/>
+                  </svg>
+                )}
+              </button>
+
+              {/* Send button */}
               <button onClick={sendMessage} disabled={!canSend}
                 className="send-btn flex-shrink-0 flex h-8 w-8 items-center justify-center rounded-xl"
                 style={{
