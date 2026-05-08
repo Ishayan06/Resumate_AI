@@ -11,17 +11,22 @@
   "dependencies": {
     "@headlessui/react": "^2.2.9",
     "@heroicons/react": "^2.2.0",
+    "@tabler/icons-react": "^3.42.0",
     "axios": "^1.13.6",
+    "clsx": "^2.1.1",
+    "groq-sdk": "^1.1.2",
     "gsap": "^3.14.2",
     "jwt-decode": "^4.0.0",
-    "motion": "^12.35.1",
+    "motion": "^12.38.0",
     "next": "16.1.6",
     "ogl": "^1.0.11",
+    "pdf-parse": "^2.4.5",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-dropzone": "^15.0.0",
     "react-hot-toast": "^2.6.0",
     "react-router-dom": "^6.30.3",
+    "tailwind-merge": "^3.5.0",
     "three": "^0.167.1"
   },
   "devDependencies": {
