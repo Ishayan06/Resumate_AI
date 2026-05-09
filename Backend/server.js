@@ -9,6 +9,7 @@ const questionRoutes = require('./routes/questionRoutes');
 const authRoutes = require('./routes/authRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes'); // Add this
+const streakRoutes = require('./routes/streak');
 
 const app = express();
 
@@ -18,6 +19,7 @@ app.use(express.json());
 
 // Routes
 app.use('/api', testRoutes);
+app.use('/api', streakRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);

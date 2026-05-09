@@ -94,6 +94,9 @@ export const interview = {
     ),
 };
 
+export const user = {
+  updateStreak: () => api.post('/streak'),
+};
 // -----------------------------
 // QUESTIONS APIs
 // -----------------------------
