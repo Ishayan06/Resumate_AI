@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import api from "@/lib/api"; // your existing axios instance
 
 /* ─── Roadmap Data ──────────────────────────────────────────────────── */
 const roadmaps = [
@@ -82,151 +81,6 @@ const roadmaps = [
 
 const CATEGORIES = ["All", "Fundamentals", "Development", "Emerging Tech"];
 const LEVEL_STEPS: Record<string, number> = { Beginner: 1, Intermediate: 2, Advanced: 3 };
-const MONTHS = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
-
-/* ─── Types ─────────────────────────────────────────────────────────── */
-interface StreakInfo {
-  streak: number;
-  maxstreak: number;
-  totalDays: number;
-  visitDates: string[]; // ["2025-08-01", "2025-08-02", ...]
-  updated: boolean;
-}
-
-/* ─── Heatmap helpers ────────────────────────────────────────────────── */
-function buildHeatmapGrid(visitDates: string[]) {
-  const visitSet = new Set(visitDates);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-
-  const startDate = new Date(today);
-  startDate.setDate(startDate.getDate() - 181);
-  startDate.setDate(startDate.getDate() - startDate.getDay()); // rewind to Sunday
-
-  const weeks: { date: Date; active: boolean; isToday: boolean; isFuture: boolean }[][] = [];
-  const current = new Date(startDate);
-
-  while (weeks.length < 27) {
-    const week: typeof weeks[0] = [];
-    for (let d = 0; d < 7; d++) {
-      const iso = current.toISOString().split("T")[0];
-      week.push({
-        date: new Date(current),
-        active: visitSet.has(iso),
-        isToday: current.getTime() === today.getTime(),
-        isFuture: current > today,
-      });
-      current.setDate(current.getDate() + 1);
-    }
-    weeks.push(week);
-  }
-  return weeks;
-}
-
-/* ─── Heatmap Component ──────────────────────────────────────────────── */
-function StreakHeatmap({ info }: { info: StreakInfo }) {
-  const weeks = useMemo(() => buildHeatmapGrid(info.visitDates), [info.visitDates]);
-
-  const monthLabels = useMemo(() => {
-    const labels: { label: string; col: number }[] = [];
-    weeks.forEach((week, wi) => {
-      if (week[0].date.getDate() <= 7) {
-        labels.push({ label: MONTHS[week[0].date.getMonth()], col: wi });
-      }
-    });
-    return labels;
-  }, [weeks]);
-
-  return (
-    <div style={{
-      background: "rgba(255,255,255,.03)",
-      border: "1px solid rgba(124,109,250,.18)",
-      borderRadius: "20px",
-      padding: "24px 28px",
-      marginBottom: "48px",
-    }}>
-      {/* Stats row */}
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "24px", marginBottom: "20px", alignItems: "center", justifyContent: "space-between" }}>
-        <div style={{ display: "flex", gap: "32px", flexWrap: "wrap" }}>
-          {[
-            { val: String(info.totalDays), label: "Active Days", icon: "📅" },
-            { val: String(info.maxstreak), label: "Max Streak", icon: "🏆" },
-            { val: String(info.streak),    label: "Current Streak", icon: "🔥" },
-          ].map(({ val, label, icon }) => (
-            <div key={label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-              <span style={{ fontSize: "19px" }}>{icon}</span>
-              <div>
-                <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "21px", fontWeight: 800, lineHeight: 1 }}>{val}</div>
-                <div style={{ fontSize: "10px", color: "rgba(255,255,255,.32)", marginTop: "2px" }}>{label}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-        {/* Legend */}
-        <div style={{ fontSize: "10px", color: "rgba(255,255,255,.28)", display: "flex", alignItems: "center", gap: "5px" }}>
-          Less
-          {[0.07, 0.25, 0.5, 0.75, 1].map((o) => (
-            <div key={o} style={{ width: "11px", height: "11px", borderRadius: "3px", background: `rgba(124,109,250,${o})` }} />
-          ))}
-          More
-        </div>
-      </div>
-
-      {/* Grid */}
-      <div style={{ overflowX: "auto", paddingBottom: "2px" }}>
-        <div style={{ display: "inline-block" }}>
-          {/* Month labels */}
-          <div style={{ display: "flex", gap: "3px", marginBottom: "4px", paddingLeft: "20px" }}>
-            {weeks.map((_, wi) => {
-              const ml = monthLabels.find((m) => m.col === wi);
-              return (
-                <div key={wi} style={{ width: "13px", fontSize: "9px", color: "rgba(255,255,255,.28)", whiteSpace: "nowrap", overflow: "visible" }}>
-                  {ml ? ml.label : ""}
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ display: "flex", gap: "3px" }}>
-            {/* Day labels */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginRight: "2px" }}>
-              {["", "M", "", "W", "", "F", ""].map((d, i) => (
-                <div key={i} style={{ width: "13px", height: "13px", fontSize: "9px", color: "rgba(255,255,255,.22)", display: "flex", alignItems: "center", justifyContent: "center" }}>{d}</div>
-              ))}
-            </div>
-
-            {/* Weeks */}
-            {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: "flex", flexDirection: "column", gap: "3px" }}>
-                {week.map((cell, di) => (
-                  <div
-                    key={di}
-                    title={cell.isFuture ? "" : `${cell.date.toDateString()}${cell.active ? " ✓" : ""}`}
-                    style={{
-                      width: "13px", height: "13px", borderRadius: "3px", flexShrink: 0,
-                      background: cell.isFuture
-                        ? "transparent"
-                        : cell.isToday
-                        ? "rgba(124,109,250,0.9)"
-                        : cell.active
-                        ? "rgba(124,109,250,0.72)"
-                        : "rgba(255,255,255,0.055)",
-                      border: cell.isToday ? "1px solid rgba(168,156,255,0.75)" : "1px solid transparent",
-                      transition: "transform 0.12s ease",
-                      cursor: cell.isFuture ? "default" : "pointer",
-                    }}
-                    onMouseEnter={(e) => { if (!cell.isFuture) (e.currentTarget as HTMLDivElement).style.transform = "scale(1.45)"; }}
-                    onMouseLeave={(e) => { (e.currentTarget as HTMLDivElement).style.transform = "scale(1)"; }}
-                  />
-                ))}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
 
 /* ─── Page ──────────────────────────────────────────────────────────── */
 export default function RoadmapsPage() {
@@ -234,24 +88,6 @@ export default function RoadmapsPage() {
   const [activeCategory, setActiveCategory] = useState("All");
   const [search, setSearch] = useState("");
   const [hovered, setHovered] = useState<number | null>(null);
-  const [streakInfo, setStreakInfo] = useState<StreakInfo | null>(null);
-  const [streakToast, setStreakToast] = useState(false);
-  const hasFired = useRef(false);
-
-  useEffect(() => {
-    if (hasFired.current) return;
-    hasFired.current = true;
-    (async () => {
-      try {
-        const res = await api.post<StreakInfo>("/streak");
-        setStreakInfo(res.data);
-        if (res.data.updated && res.data.streak > 1) {
-          setStreakToast(true);
-          setTimeout(() => setStreakToast(false), 4000);
-        }
-      } catch { /* silently fail */ }
-    })();
-  }, []);
 
   const filtered = useMemo(
     () => roadmaps.filter((r) => {
@@ -270,8 +106,6 @@ export default function RoadmapsPage() {
         @keyframes orb2 { 0%,100%{transform:translate(0,0) scale(1)} 50%{transform:translate(-60px,50px) scale(0.93)} }
         @keyframes orb3 { 0%,100%{transform:translate(0,0)} 60%{transform:translate(30px,60px)} }
         @keyframes cardIn { from{opacity:0;transform:translateY(18px)} to{opacity:1;transform:translateY(0)} }
-        @keyframes toastIn { from{opacity:0;transform:translateY(16px) scale(0.95)} to{opacity:1;transform:translateY(0) scale(1)} }
-        @keyframes fadeIn { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         .rm-page*{box-sizing:border-box}
         .rm-page{font-family:'Outfit',sans-serif}
         .rm-card{animation:cardIn .4s ease both;will-change:transform;transition:transform .3s cubic-bezier(.23,1,.32,1),border-color .3s,box-shadow .3s;cursor:pointer}
@@ -290,8 +124,6 @@ export default function RoadmapsPage() {
         .rm-arrow{transition:transform .26s ease;display:inline-block}
         .rm-cta-btn{transition:transform .2s ease;cursor:pointer}
         .rm-cta-btn:hover{transform:scale(1.04)}
-        .rm-toast{animation:toastIn .4s cubic-bezier(.23,1,.32,1) both}
-        .rm-heatmap{animation:fadeIn .5s ease both}
       `}</style>
 
       <div className="rm-page" style={{ minHeight: "100vh", background: "rgba(7,7,15,0.72)", color: "#fff", position: "relative", overflowX: "hidden" }}>
@@ -302,17 +134,6 @@ export default function RoadmapsPage() {
           <div style={{ position: "absolute", bottom: 0, right: "-12%", width: "50vw", height: "50vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(96,165,250,.1) 0%,transparent 70%)", animation: "orb2 17s ease-in-out infinite" }} />
           <div style={{ position: "absolute", top: "35%", left: "25%", width: "40vw", height: "40vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(244,114,182,.07) 0%,transparent 70%)", animation: "orb3 20s ease-in-out infinite" }} />
         </div>
-
-        {/* Toast */}
-        {streakToast && streakInfo && (
-          <div className="rm-toast" style={{ position: "fixed", bottom: "28px", right: "28px", zIndex: 999, background: "rgba(14,12,30,0.95)", border: "1px solid rgba(124,109,250,.4)", borderRadius: "18px", padding: "16px 22px", backdropFilter: "blur(24px)", display: "flex", alignItems: "center", gap: "14px", boxShadow: "0 8px 48px rgba(0,0,0,.6)" }}>
-            <span style={{ fontSize: "28px" }}>🔥</span>
-            <div>
-              <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "15px", fontWeight: 800 }}>{streakInfo.streak} day streak!</div>
-              <div style={{ fontSize: "11px", color: "rgba(255,255,255,.4)", marginTop: "3px" }}>Best: {streakInfo.maxstreak} days — you&apos;re on fire!</div>
-            </div>
-          </div>
-        )}
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: "1280px", margin: "0 auto", padding: "52px 24px 64px" }}>
 
@@ -335,7 +156,6 @@ export default function RoadmapsPage() {
                 ["6", "ROADMAPS"],
                 ["36", "TOPICS"],
                 ["100%", "FREE"],
-                [streakInfo ? `${streakInfo.streak}🔥` : "—", "STREAK"],
               ].map(([n, l]) => (
                 <div key={String(l)}>
                   <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "24px", fontWeight: 800, lineHeight: 1 }}>{n}</div>
@@ -355,17 +175,6 @@ export default function RoadmapsPage() {
               ))}
             </div>
           </div>
-
-          {/* Heatmap */}
-          {/* {streakInfo && (
-            <div className="rm-heatmap">
-              <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px" }}>
-                <div style={{ width: "16px", height: "1px", background: "rgba(124,109,250,.6)" }} />
-                <span style={{ fontSize: "11px", letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(124,109,250,.8)" }}>Your Activity</span>
-              </div>
-              <StreakHeatmap info={streakInfo} />
-            </div>
-          )} */}
 
           {/* Cards */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(310px,1fr))", gap: "18px", marginBottom: "56px" }}>
@@ -413,12 +222,6 @@ export default function RoadmapsPage() {
             <p style={{ color: "rgba(255,255,255,.4)", maxWidth: "460px", margin: "0 auto 24px", lineHeight: 1.7, fontSize: "14px", position: "relative" }}>
               Follow the roadmap daily, build projects, and prepare consistently. Dedication turns any goal into a placement offer.
             </p>
-            {streakInfo && streakInfo.maxstreak > 0 && (
-              <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", background: "rgba(124,109,250,.1)", border: "1px solid rgba(124,109,250,.22)", borderRadius: "12px", padding: "8px 16px", marginBottom: "20px", position: "relative" }}>
-                <span>🏆</span>
-                <span style={{ fontSize: "13px", color: "rgba(255,255,255,.65)" }}>Best streak: <strong style={{ color: "#a89cff" }}>{streakInfo.maxstreak} days</strong></span>
-              </div>
-            )}
             <div style={{ position: "relative" }}>
               <button className="rm-cta-btn" onClick={() => router.push("/dashboard")} style={{ padding: "13px 34px", borderRadius: "13px", background: "linear-gradient(130deg,#7c6dfa,#f472b6)", border: "none", color: "#fff", fontSize: "14px", fontWeight: 600, fontFamily: "'Outfit',sans-serif", letterSpacing: ".02em" }}>
                 ← Back to Dashboard

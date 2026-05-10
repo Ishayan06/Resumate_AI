@@ -14,21 +14,21 @@ export async function POST(req: Request) {
       );
     }
 
+    // Normalise: strip spaces/dashes so storage is consistent
+    const normalised = phone.replace(/[\s\-().]/g, "");
+
     await db.query(
       `
       UPDATE users
       SET whatsapp_number = $1
       WHERE id = $2
       `,
-      [phone, userId]
+      [normalised, userId]
     );
 
-    return NextResponse.json({
-      success: true,
-    });
+    return NextResponse.json({ success: true });
   } catch (err) {
     console.error(err);
-
     return NextResponse.json(
       { error: "Server error" },
       { status: 500 }

@@ -448,7 +448,7 @@ export default function AboutPage() {
           </p>
           <div className="hero-cta">
             <Link href="/register" className="btn-primary">Start for Free →</Link>
-            <Link href="/login" className="btn-ghost">Sign In</Link>
+            {/* <Link href="/login" className="btn-ghost">Sign In</Link> */}
           </div>
         </section>
 

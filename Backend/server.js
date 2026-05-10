@@ -10,6 +10,8 @@ const authRoutes = require('./routes/authRoutes');
 const resumeRoutes = require('./routes/resumeRoutes');
 const interviewRoutes = require('./routes/interviewRoutes'); // Add this
 const streakRoutes = require('./routes/streak');
+const telegramRoutes = require('./routes/telegramRoutes');
+const reminderRoutes = require('./routes/reminderRoutes');
 
 const app = express();
 
@@ -23,7 +25,9 @@ app.use('/api', streakRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);
-app.use('/api/interview', interviewRoutes); // Add this
+app.use('/api/interview', interviewRoutes);
+app.use('/api/telegram', telegramRoutes);
+app.use('/api/reminder', reminderRoutes); // Add this
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);

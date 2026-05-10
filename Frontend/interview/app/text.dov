@@ -1,0 +1,293 @@
+'use client';
+
+import React, { useEffect } from 'react';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { isAuthenticated } from '@/lib/auth';
+import TextType from '@/components/TextType';
+
+export default function Home() {
+  const router = useRouter();
+  const authenticated = isAuthenticated();
+
+  useEffect(() => {
+    if (authenticated) {
+      router.push('/dashboard');
+    }
+  }, [authenticated]);
+
+  return (
+    <main className="min-h-screen flex flex-col items-center">
+
+      {/* ───────── HERO — UNCHANGED ───────── */}
+      <div
+        className="flex flex-col items-center gap-10 px-6 text-center pt-32 pb-32"
+        style={{ minWidth: 'min(90vw, 700px)' }}
+      >
+        <div className="w-full min-h-[80px] flex items-center justify-center">
+          <TextType
+            text={[
+              'Want to test your skills?',
+              "Think you're interview-ready?",
+              "Prove what you're made of.",
+            ]}
+            as="h1"
+            typingSpeed={55}
+            deletingSpeed={30}
+            pauseDuration={2200}
+            loop={true}
+            showCursor={true}
+            cursorCharacter="|"
+            cursorBlinkDuration={0.45}
+            className="text-4xl sm:text-5xl md:text-6xl font-bold tracking-tight text-white"
+            cursorClassName="text-indigo-400"
+            style={{ fontFamily: "'Sora', sans-serif" }}
+          />
+        </div>
+
+        <div className="flex items-center gap-4 flex-wrap justify-center">
+          <Link
+            href="/login"
+            className="cursor-target group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-10 py-4 text-sm font-semibold uppercase tracking-widest text-white transition-all duration-300"
+            style={{ fontFamily: "'DM Mono', monospace" }}
+          >
+            <span className="absolute inset-0 rounded-full border border-indigo-500/50 bg-indigo-600/20 backdrop-blur-sm transition-all duration-300 group-hover:bg-indigo-500/30 group-hover:border-indigo-400/80" />
+            <span
+              className="absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+              style={{ boxShadow: '0 0 32px 4px rgba(99,102,241,0.35)' }}
+            />
+            <span className="relative z-10 flex h-5 w-5 items-center justify-center">
+              <svg viewBox="0 0 20 20" fill="none" className="h-4 w-4 text-indigo-300 transition-transform duration-300 group-hover:translate-x-0.5">
+                <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </span>
+            <span className="relative z-10">Start Interview</span>
+          </Link>
+
+          <Link
+            href="/about"
+            className="cursor-target group relative inline-flex items-center gap-3 overflow-hidden rounded-full px-10 py-4 text-sm font-semibold uppercase tracking-widest text-white/60 transition-all duration-300 hover:text-white"
+            style={{ fontFamily: "'DM Mono', monospace" }}
+          >
+            <span className="absolute inset-0 rounded-full border border-white/10 bg-white/5 backdrop-blur-sm transition-all duration-300 group-hover:bg-white/10 group-hover:border-white/20" />
+            <span className="relative z-10">Learn More</span>
+          </Link>
+        </div>
+      </div>
+
+      {/* ───────── HOW IT WORKS ───────── */}
+      <section className="w-full max-w-7xl px-6 py-24 flex flex-col items-center gap-16">
+
+        {/* Header */}
+        <div className="flex flex-col items-center gap-5 text-center">
+          <div className="inline-flex items-center gap-3 rounded-full border border-indigo-500/20 bg-indigo-500/5 px-5 py-2">
+            <div className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-indigo-300" style={{ fontFamily: "'DM Mono', monospace" }}>
+              AI Powered Workflow
+            </span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white leading-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
+            Crack interviews with
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-violet-400 to-fuchsia-400">
+              real AI preparation
+            </span>
+          </h2>
+          <p className="max-w-2xl text-sm sm:text-base text-white/35 leading-relaxed" style={{ fontFamily: "'DM Mono', monospace" }}>
+            Everything from resume analysis to DSA roadmaps, AI interviews, communication coaching, ATS optimization, and streak-based growth.
+          </p>
+        </div>
+
+        {/* Steps grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 w-full">
+          {[
+            { no: '01', icon: '📄', title: 'Upload Resume', desc: 'AI extracts your skills, projects, tech stack, and experience instantly.' },
+            { no: '02', icon: '🎤', title: 'Practice Interviews', desc: 'Get realistic AI-generated interview questions with voice interaction.' },
+            { no: '03', icon: '📈', title: 'Improve & Track', desc: 'Receive ATS score, communication analysis, streaks, and growth metrics.' },
+          ].map((item) => (
+            <div
+              key={item.no}
+              className="group relative overflow-hidden rounded-[28px] border border-white/[0.06] bg-white/[0.025] p-8 backdrop-blur-xl transition-all duration-500 hover:border-indigo-500/35 hover:-translate-y-1.5"
+            >
+              {/* Hover glow */}
+              <div className="pointer-events-none absolute inset-0 rounded-[28px] opacity-0 group-hover:opacity-100 transition-opacity duration-500 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.14),transparent_65%)]" />
+
+              {/* Top row */}
+              <div className="relative flex items-center justify-between mb-8">
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-indigo-500/20 bg-indigo-500/10 text-2xl">
+                  {item.icon}
+                </div>
+                <span
+                  className="text-[52px] font-black leading-none text-white/[0.04] select-none"
+                  style={{ fontFamily: "'Sora', sans-serif", letterSpacing: '-3px' }}
+                >
+                  {item.no}
+                </span>
+              </div>
+
+              {/* Body */}
+              <div className="relative flex flex-col gap-3">
+                <h3 className="text-[22px] font-semibold text-white" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {item.title}
+                </h3>
+                <p className="text-[11.5px] leading-[1.85] text-white/38" style={{ fontFamily: "'DM Mono', monospace" }}>
+                  {item.desc}
+                </p>
+              </div>
+
+              {/* Footer link */}
+              <div className="relative mt-7 pt-5 border-t border-white/[0.06] flex items-center gap-2 text-indigo-300/80 group-hover:text-indigo-300 transition-colors duration-300">
+                <span className="text-[10px] uppercase tracking-[0.3em]" style={{ fontFamily: "'DM Mono', monospace" }}>
+                  Learn More
+                </span>
+                <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3 transition-transform duration-300 group-hover:translate-x-1">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* ───────── FEATURE GRID ───────── */}
+      <section className="w-full max-w-7xl px-6 pb-28 flex flex-col gap-16">
+
+        {/* Header */}
+        <div className="text-center flex flex-col gap-5 items-center">
+          <div className="inline-flex items-center gap-3 rounded-full border border-violet-500/20 bg-violet-500/5 px-5 py-2">
+            <div className="h-2 w-2 rounded-full bg-violet-400 animate-pulse" />
+            <span className="text-[11px] uppercase tracking-[0.4em] text-violet-300" style={{ fontFamily: "'DM Mono', monospace" }}>
+              Features
+            </span>
+          </div>
+          <h2 className="text-4xl sm:text-5xl md:text-6xl font-bold text-white" style={{ fontFamily: "'Sora', sans-serif" }}>
+            One platform for your
+            <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
+              entire placement journey
+            </span>
+          </h2>
+        </div>
+
+        {/* Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          {[
+            { icon: '🧠', title: 'AI Interview Simulator', desc: 'Experience company-style interviews with adaptive AI questions and follow-ups.' },
+            { icon: '🗣️', title: 'Communication Skill Enhancer', desc: 'Analyze speaking confidence, filler words, fluency, and clarity.' },
+            { icon: '📄', title: 'AI Resume Generator', desc: 'Generate ATS-friendly resumes instantly using AI-powered templates.' },
+            { icon: '🎯', title: 'ATS Score Analyzer', desc: 'Get detailed ATS compatibility scores with keyword optimization tips.' },
+            { icon: '🛣️', title: 'Structured Learning Roadmaps', desc: 'Frontend, Backend, DSA, AI/ML, System Design & company-specific prep paths.' },
+            { icon: '🔥', title: 'Daily Streak System', desc: 'Build consistency with streaks, heatmaps, XP points, and milestones.' },
+            { icon: '📚', title: 'DSA Deadline Tracker', desc: 'Complete DSA sheets before deadlines with progress tracking & reminders.' },
+            { icon: '🏆', title: 'Leaderboard & Ranking', desc: 'Compete with friends and top learners using XP and contest scores.' },
+            { icon: '📊', title: 'Performance Analytics', desc: 'Visual dashboards showing interview growth, weak areas, and trends.' },
+          ].map((f) => (
+            <div
+              key={f.title}
+              className="group relative overflow-hidden rounded-[22px] border border-white/[0.05] bg-white/[0.025] p-6 transition-all duration-500 hover:border-indigo-500/25 hover:-translate-y-1 flex flex-col"
+            >
+              <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover:opacity-100 bg-[radial-gradient(circle_at_top_right,rgba(139,92,246,0.18),transparent_60%)]" />
+
+              {/* Icon + dot */}
+              <div className="relative flex items-center justify-between mb-5">
+                <div className="flex h-12 w-12 items-center justify-center rounded-[14px] border border-indigo-500/18 bg-indigo-500/8 text-xl">
+                  {f.icon}
+                </div>
+                <div className="h-[6px] w-[6px] rounded-full bg-indigo-400/50 group-hover:bg-indigo-400 transition-colors duration-300" />
+              </div>
+
+              {/* Text */}
+              <div className="relative flex flex-col gap-2.5 flex-1">
+                <h3 className="text-[15px] font-semibold text-white/90 leading-snug" style={{ fontFamily: "'Sora', sans-serif" }}>
+                  {f.title}
+                </h3>
+                <p className="text-[11px] leading-[1.8] text-white/33" style={{ fontFamily: "'DM Mono', monospace" }}>
+                  {f.desc}
+                </p>
+              </div>
+
+              {/* Footer */}
+              <div className="relative mt-5 pt-4 border-t border-white/[0.06] flex items-center gap-3">
+                <div className="h-px flex-1 bg-white/[0.07] group-hover:bg-white/[0.12] transition-colors duration-300" />
+                <div className="flex h-[22px] w-[22px] items-center justify-center rounded-full border border-white/10 group-hover:border-indigo-500/40 group-hover:bg-indigo-500/15 transition-all duration-300">
+                  <svg viewBox="0 0 16 16" fill="none" className="h-2.5 w-2.5 text-indigo-300/70 transition-transform duration-300 group-hover:translate-x-0.5">
+                    <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          {[
+            ['50K+', 'Interview Questions'],
+            ['100+', 'Learning Roadmaps'],
+            ['24/7', 'AI Assistance'],
+            ['99%', 'ATS Optimization'],
+          ].map(([value, label]) => (
+            <div
+              key={label}
+              className="rounded-[22px] border border-white/[0.05] bg-white/[0.025] px-6 py-7 text-center"
+            >
+              <div
+                className="text-[32px] font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-300 to-violet-400 leading-none mb-3"
+                style={{ fontFamily: "'Sora', sans-serif" }}
+              >
+                {value}
+              </div>
+              <div className="text-[9.5px] uppercase tracking-[0.28em] text-white/28" style={{ fontFamily: "'DM Mono', monospace" }}>
+                {label}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Final CTA */}
+        <div className="relative overflow-hidden rounded-[36px] border border-indigo-500/20 bg-gradient-to-br from-indigo-500/10 via-violet-500/5 to-transparent p-10 sm:p-14">
+          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(99,102,241,0.18),transparent_65%)]" />
+
+          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div className="max-w-2xl flex flex-col gap-5">
+              <div className="inline-flex w-fit items-center gap-2 rounded-full border border-indigo-400/20 bg-indigo-500/10 px-4 py-2">
+                <div className="h-2 w-2 rounded-full bg-indigo-400 animate-pulse" />
+                <span className="text-[10px] uppercase tracking-[0.3em] text-indigo-300" style={{ fontFamily: "'DM Mono', monospace" }}>
+                  Start Today
+                </span>
+              </div>
+              <h2 className="text-4xl sm:text-5xl font-bold text-white leading-tight" style={{ fontFamily: "'Sora', sans-serif" }}>
+                Your next interview could
+                <span className="block text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">
+                  change everything.
+                </span>
+              </h2>
+              <p className="text-sm sm:text-base text-white/35 leading-relaxed" style={{ fontFamily: "'DM Mono', monospace" }}>
+                Practice smarter. Improve faster. Build consistency with AI-driven preparation.
+              </p>
+            </div>
+
+            <div className="flex flex-col sm:flex-row lg:flex-col gap-3 flex-shrink-0">
+              <Link
+                href="/register"
+                className="group inline-flex items-center justify-center gap-3 rounded-full border border-indigo-500/40 bg-indigo-500/20 px-10 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-white transition-all duration-300 hover:bg-indigo-500/30 hover:border-indigo-400/70"
+                style={{ fontFamily: "'DM Mono', monospace" }}
+              >
+                Get Started
+                <svg viewBox="0 0 16 16" fill="none" className="h-3 w-3 text-indigo-300 transition-transform duration-300 group-hover:translate-x-1">
+                  <path d="M3 8h10M9 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                </svg>
+              </Link>
+              <Link
+                href="/about"
+                className="inline-flex items-center justify-center rounded-full border border-white/10 bg-white/[0.04] px-10 py-4 text-[11px] font-medium uppercase tracking-[0.25em] text-white/60 transition-all duration-300 hover:bg-white/[0.08] hover:text-white"
+                style={{ fontFamily: "'DM Mono', monospace" }}
+              >
+                Explore Features
+              </Link>
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </main>
+  );
+}

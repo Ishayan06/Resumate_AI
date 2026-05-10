@@ -16,6 +16,7 @@
     "clsx": "^2.1.1",
     "groq-sdk": "^1.1.2",
     "gsap": "^3.14.2",
+    "html2pdf.js": "^0.14.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^1.14.0",
     "motion": "^12.38.0",
@@ -32,6 +33,7 @@
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/dom-speech-recognition": "^0.0.11",
     "@types/node": "^20",
     "@types/react": "^19",
     "@types/react-dom": "^19",

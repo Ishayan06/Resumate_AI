@@ -198,86 +198,94 @@ export default function Home() {
             <div className="h-px w-12 bg-gradient-to-l from-transparent to-indigo-500/50" />
           </div>
           <h2 className="text-4xl sm:text-5xl font-bold text-white" style={{ fontFamily: "'Sora', sans-serif" }}>
-            Everything you need to <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">ace it</span>
-          </h2>
-          <p className="text-sm text-white/30 max-w-md" style={{ fontFamily: "'DM Mono', monospace" }}>
-            Built for developers, designers, and everyone in between. No fluff, no filler.
-          </p>
+  Features you <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-violet-400">get</span>
+</h2>
+
+<p className="text-sm text-white/30 max-w-md" style={{ fontFamily: "'DM Mono', monospace" }}>
+  Powerful AI tools to help you prepare smarter, improve faster, and stay consistent.
+</p>
         </div>
 
         {/* Cards grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 w-full">
           {[
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-indigo-300">
-                  <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-              tag: 'Voice Mode',
-              title: 'Speak Your Answers',
-              desc: 'Record responses out loud. Practice the real thing, not just typing.',
-              accent: 'from-indigo-500/20 to-violet-500/10',
-            },
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-violet-300">
-                  <path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-              tag: 'Personalised',
-              title: 'Resume-Tailored Questions',
-              desc: 'Every question built from your actual experience.',
-              accent: 'from-violet-500/20 to-indigo-500/10',
-            },
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-sky-300">
-                  <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-              tag: 'Instant',
-              title: 'AI Feedback in Seconds',
-              desc: 'Get scored immediately with improvement tips.',
-              accent: 'from-sky-500/20 to-indigo-500/10',
-            },
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-emerald-300">
-                  <rect x="2" y="3" width="20" height="14" rx="2" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M8 21h8M12 17v4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ),
-              tag: 'Multi-Domain',
-              title: 'All Roles Covered',
-              desc: 'Frontend, Backend, DSA, System Design, Behavioural — pick your track.',
-              accent: 'from-emerald-500/20 to-indigo-500/10',
-            },
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-amber-300">
-                  <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              ),
-              tag: 'Progress',
-              title: 'Track Your Growth',
-              desc: 'See your scores improve over sessions. Know exactly where you stand.',
-              accent: 'from-amber-500/20 to-indigo-500/10',
-            },
-            {
-              icon: (
-                <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-rose-300">
-                  <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5"/>
-                  <path d="M12 6v6l4 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-                </svg>
-              ),
-              tag: 'Timed',
-              title: 'Real Interview Pressure',
-              desc: 'Countdown timers simulate actual interview conditions.',
-              accent: 'from-rose-500/20 to-indigo-500/10',
-            },
-          ].map(({ icon, tag, title, desc, accent }) => (
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-indigo-300">
+        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4M8 23h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    tag: 'AI Interview',
+    title: 'AI Interview Simulator',
+    desc: 'Practice realistic mock interviews with adaptive AI-generated questions and instant scoring.',
+    accent: 'from-indigo-500/20 to-violet-500/10',
+  },
+
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-violet-300">
+        <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+        <path d="M5 10v2a7 7 0 0014 0v-2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    tag: 'Communication',
+    title: 'Communication Enhancer',
+    desc: 'Improve fluency, confidence, speaking clarity, and reduce filler words using AI analysis.',
+    accent: 'from-violet-500/20 to-indigo-500/10',
+  },
+
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-sky-300">
+        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8l-6-6z" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M14 2v6h6" stroke="currentColor" strokeWidth="1.5"/>
+      </svg>
+    ),
+    tag: 'Resume',
+    title: 'AI Resume Maker',
+    desc: 'Generate beautiful ATS-ready resumes instantly using AI-powered templates and suggestions.',
+    accent: 'from-sky-500/20 to-indigo-500/10',
+  },
+
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-emerald-300">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M8 12h8M8 16h5M8 8h8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    tag: 'Roadmaps',
+    title: 'Structured Learning Roadmaps',
+    desc: 'Follow complete Frontend, Backend, DSA, AI/ML, and company-specific preparation paths.',
+    accent: 'from-emerald-500/20 to-indigo-500/10',
+  },
+
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-amber-300">
+        <path d="M18 20V10M12 20V4M6 20v-6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </svg>
+    ),
+    tag: 'DSA Tracker',
+    title: 'DSA Heatmap + Points System',
+    desc: 'Track consistency with streak heatmaps, XP points, deadlines, and coding milestones.',
+    accent: 'from-amber-500/20 to-indigo-500/10',
+  },
+
+  {
+    icon: (
+      <svg viewBox="0 0 24 24" fill="none" className="h-6 w-6 text-rose-300">
+        <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+        <path d="M8 12l2.5 2.5L16 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+      </svg>
+    ),
+    tag: 'ATS Analyzer',
+    title: 'ATS Score Calculator',
+    desc: 'Analyze resumes with ATS scoring, keyword optimization, and improvement suggestions.',
+    accent: 'from-rose-500/20 to-indigo-500/10',
+  },
+].map(({ icon, tag, title, desc, accent }) => (
             <div
               key={title}
               className="group relative flex flex-col gap-5 rounded-2xl border border-white/5 p-7 backdrop-blur-sm overflow-hidden transition-all duration-400 hover:border-white/10 hover:-translate-y-0.5"
