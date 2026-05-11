@@ -32,7 +32,29 @@ export const auth = {
   login: (data: { email: string; password: string }) =>
     api.post('/api/auth/login', data),
 };
+// DSA PLAN
+export const dsaPlan = {
+  getPlan: () =>
+    api.get<{
+      days: number;
+      dataLocked: string | null;
+      streak: number;
+      maxstreak: number;
+    }>('/api/dsa-plan'),
 
+  start: (days: number) =>
+    api.post('/api/dsa-plan/start', { days }),
+
+  changeDuration: (days: number) =>
+    api.post('/api/dsa-plan/change-duration', { days }),
+
+  completeDay: (dayIdx: number) =>
+    api.post<{
+      streak: number;
+      maxstreak: number;
+      updated: boolean;
+    }>('/api/dsa-plan/complete-day', { dayIdx }),
+};
 // RESUME
 export const resume = {
   upload: (formData: FormData) =>
