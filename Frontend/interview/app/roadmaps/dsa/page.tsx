@@ -13,9 +13,16 @@ interface Question {
 
 interface PlanData {
   days: number;
-  done: Record<number, boolean>;
-  completedDays: number[];
-  activityDates: string[]; // ["2025-05-01", "2025-05-09", …]
+  dataLocked: string | null;
+  streak: number;
+  maxstreak: number;
+}
+
+interface StreakData {
+  streak: number;
+  maxstreak: number;
+  totalDays: number;
+  visitDates: string[];
 }
 
 /* ─── Constants ──────────────────────────────────────────────────────── */
@@ -56,22 +63,6 @@ function lsSet(key: string, val: unknown) {
   try { localStorage.setItem(key, JSON.stringify(val)); } catch {}
 }
 
-/* ─── Streak calc ────────────────────────────────────────────────────── */
-function computeStreak(activityDates: string[]): number {
-  if (!activityDates.length) return 0;
-  const set = new Set(activityDates);
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
-  let streak = 0;
-  const cur = new Date(today);
-  while (true) {
-    const iso = cur.toISOString().split("T")[0];
-    if (set.has(iso)) { streak++; cur.setDate(cur.getDate() - 1); }
-    else break;
-  }
-  return streak;
-}
-
 /* ─── Heatmap grid builder ───────────────────────────────────────────── */
 function buildHeatmapGrid(activityDates: string[]) {
   const visitSet = new Set(activityDates);
@@ -100,9 +91,16 @@ function buildHeatmapGrid(activityDates: string[]) {
 }
 
 /* ─── Activity Heatmap ───────────────────────────────────────────────── */
-function ActivityHeatmap({ activityDates, totalDone }: { activityDates: string[]; totalDone: number }) {
+function ActivityHeatmap({
+  activityDates,
+  totalDone,
+  streak,
+}: {
+  activityDates: string[];
+  totalDone: number;
+  streak: number;
+}) {
   const weeks = useMemo(() => buildHeatmapGrid(activityDates), [activityDates]);
-  const streak = useMemo(() => computeStreak(activityDates), [activityDates]);
   const activeDays = useMemo(() => new Set(activityDates).size, [activityDates]);
 
   const monthLabels = useMemo(() => {
@@ -127,13 +125,12 @@ function ActivityHeatmap({ activityDates, totalDone }: { activityDates: string[]
         <span style={{ fontSize: "11px", letterSpacing: ".14em", textTransform: "uppercase", color: "rgba(124,109,250,.8)", fontFamily: "'Outfit',sans-serif" }}>Practice Activity</span>
       </div>
 
-      {/* Stats row */}
       <div style={{ display: "flex", flexWrap: "wrap", gap: "24px", marginBottom: "20px", alignItems: "center", justifyContent: "space-between" }}>
         <div style={{ display: "flex", gap: "28px", flexWrap: "wrap" }}>
           {[
-            { val: String(totalDone), label: "Questions Done", icon: "✅" },
-            { val: String(activeDays), label: "Active Days", icon: "📅" },
-            { val: String(streak), label: "Current Streak", icon: "🔥" },
+            { val: String(totalDone),   label: "Questions Done", icon: "✅" },
+            { val: String(activeDays),  label: "Active Days",    icon: "📅" },
+            { val: String(streak),      label: "Current Streak", icon: "🔥" },
           ].map(({ val, label, icon }) => (
             <div key={label} style={{ display: "flex", alignItems: "center", gap: "10px" }}>
               <span style={{ fontSize: "19px" }}>{icon}</span>
@@ -153,7 +150,6 @@ function ActivityHeatmap({ activityDates, totalDone }: { activityDates: string[]
         </div>
       </div>
 
-      {/* Grid */}
       <div style={{ overflowX: "auto", paddingBottom: "2px" }}>
         <div style={{ display: "inline-block" }}>
           <div style={{ display: "flex", gap: "3px", marginBottom: "4px", paddingLeft: "20px" }}>
@@ -218,18 +214,15 @@ function ChangePlanModal({
     <div style={{
       position: "fixed", inset: 0, zIndex: 200,
       background: "rgba(0,0,0,.75)",
-      backdropFilter: "blur(10px)",
-      WebkitBackdropFilter: "blur(10px)",
+      backdropFilter: "blur(10px)", WebkitBackdropFilter: "blur(10px)",
       display: "flex", alignItems: "center", justifyContent: "center",
       padding: "24px",
     }}>
       <div style={{
         background: "rgba(10,9,25,0.98)",
         border: "1px solid rgba(124,109,250,.3)",
-        borderRadius: "28px",
-        padding: "36px",
-        maxWidth: "460px",
-        width: "100%",
+        borderRadius: "28px", padding: "36px",
+        maxWidth: "460px", width: "100%",
         boxShadow: "0 30px 80px rgba(0,0,0,.7)",
         animation: "dsaModalIn .25s cubic-bezier(.23,1,.32,1) both",
       }}>
@@ -240,7 +233,6 @@ function ChangePlanModal({
         <p style={{ fontSize: "13px", color: "rgba(255,255,255,.38)", marginBottom: "26px", lineHeight: 1.65, fontFamily: "'Outfit',sans-serif", fontWeight: 300 }}>
           Questions you&apos;ve already completed stay done. Day groupings and locked-day status are recalculated for the new duration.
         </p>
-
         <div style={{ background: "rgba(255,255,255,.04)", borderRadius: "18px", padding: "20px", marginBottom: "18px", border: "1px solid rgba(255,255,255,.05)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
             <input
@@ -258,11 +250,10 @@ function ChangePlanModal({
             </div>
           </div>
         </div>
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px", marginBottom: "24px" }}>
           {[
             { label: "Questions / day", val: perDay, icon: "📚" },
-            { label: "Total questions", val: TOTAL_Q, icon: "🎯" },
+            { label: "Total questions",  val: TOTAL_Q, icon: "🎯" },
           ].map((m) => (
             <div key={m.label} style={{ background: "rgba(255,255,255,.03)", borderRadius: "14px", padding: "14px", border: "1px solid rgba(255,255,255,.05)" }}>
               <div style={{ fontSize: "17px", marginBottom: "6px" }}>{m.icon}</div>
@@ -271,23 +262,14 @@ function ChangePlanModal({
             </div>
           ))}
         </div>
-
         {days !== currentDays && (
           <div style={{ background: "rgba(251,191,36,.08)", border: "1px solid rgba(251,191,36,.2)", borderRadius: "12px", padding: "10px 14px", marginBottom: "16px", fontSize: "12px", color: "rgba(251,191,36,.85)", fontFamily: "'Outfit',sans-serif", lineHeight: 1.6 }}>
             ⚠️ Changing from {currentDays} → {days} days. Completed-day locks will be recalculated automatically.
           </div>
         )}
-
         <div style={{ display: "flex", gap: "10px" }}>
-          <button
-            onClick={onClose}
-            className="dsa-modal-btn-cancel"
-            style={{ flex: 1, padding: "13px", borderRadius: "14px", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.55)", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}
-          >Cancel</button>
-          <button
-            onClick={() => onConfirm(days)}
-            style={{ flex: 2, padding: "13px", borderRadius: "14px", background: "linear-gradient(135deg,#7c6dfa,#f472b6)", border: "none", color: "#fff", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}
-          >✓ Apply new duration</button>
+          <button onClick={onClose} style={{ flex: 1, padding: "13px", borderRadius: "14px", background: "rgba(255,255,255,.05)", border: "1px solid rgba(255,255,255,.1)", color: "rgba(255,255,255,.55)", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}>Cancel</button>
+          <button onClick={() => onConfirm(days)} style={{ flex: 2, padding: "13px", borderRadius: "14px", background: "linear-gradient(135deg,#7c6dfa,#f472b6)", border: "none", color: "#fff", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit',sans-serif" }}>✓ Apply new duration</button>
         </div>
       </div>
     </div>
@@ -344,10 +326,8 @@ function SetupScreen({ onStart }: { onStart: (d: number) => void }) {
             <p style={{ color: "rgba(255,255,255,.4)", fontSize: "15px", lineHeight: 1.7, fontWeight: 300, margin: "0 0 36px", fontFamily: "'Outfit',sans-serif" }}>
               Build consistency with a structured plan — track streaks, lock days, and watch your progress grow.
             </p>
-
             <div style={{ background: "rgba(255,255,255,.032)", border: "1px solid rgba(255,255,255,.07)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)", borderRadius: "26px", padding: "32px" }}>
               <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "22px", color: "#fff", fontFamily: "'Outfit',sans-serif" }}>Pick your target duration</div>
-
               <div style={{ background: "rgba(255,255,255,.04)", borderRadius: "20px", padding: "20px", marginBottom: "22px", border: "1px solid rgba(255,255,255,.05)" }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "18px" }}>
                   <input
@@ -361,11 +341,10 @@ function SetupScreen({ onStart }: { onStart: (d: number) => void }) {
                   </div>
                 </div>
               </div>
-
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", marginBottom: "28px" }}>
                 {[
                   { label: "Questions / day", val: perDay, icon: "📚" },
-                  { label: "Total questions", val: TOTAL_Q, icon: "🎯" },
+                  { label: "Total questions",  val: TOTAL_Q, icon: "🎯" },
                 ].map((m) => (
                   <div key={m.label} style={{ background: "rgba(255,255,255,.03)", borderRadius: "18px", padding: "16px", border: "1px solid rgba(255,255,255,.05)" }}>
                     <div style={{ fontSize: "20px", marginBottom: "8px" }}>{m.icon}</div>
@@ -374,7 +353,6 @@ function SetupScreen({ onStart }: { onStart: (d: number) => void }) {
                   </div>
                 ))}
               </div>
-
               <button
                 onClick={() => onStart(days)}
                 style={{ width: "100%", padding: "15px", borderRadius: "16px", background: "linear-gradient(135deg,#7c6dfa,#f472b6)", border: "none", color: "#fff", fontSize: "15px", fontWeight: 700, cursor: "pointer", fontFamily: "'Outfit',sans-serif", letterSpacing: ".02em" }}
@@ -392,18 +370,18 @@ function SetupScreen({ onStart }: { onStart: (d: number) => void }) {
 
 /* ─── Main Page ──────────────────────────────────────────────────────── */
 export default function DSAPlannerPage() {
-  const [questions, setQuestions]       = useState<Question[]>([]);
-  const [questionsReady, setQReady]     = useState(false);
-  const [planDays, setPlanDays]         = useState<number | null>(null);
-  const [done, setDone]                 = useState<Record<number, boolean>>({});
+  const [questions, setQuestions]         = useState<Question[]>([]);
+  const [questionsReady, setQReady]       = useState(false);
+  const [planDays, setPlanDays]           = useState<number | null>(null);
+  const [done, setDone]                   = useState<Record<number, boolean>>({});
   const [completedDays, setCompletedDays] = useState<Set<number>>(new Set());
   const [activityDates, setActivityDates] = useState<string[]>([]);
-  const [openDay, setOpenDay]           = useState<number | null>(null);
+  const [streak, setStreak]               = useState(0);
+  const [openDay, setOpenDay]             = useState<number | null>(null);
   const [showChangePlan, setShowChangePlan] = useState(false);
-  const [toast, setToast]               = useState<{ msg: string; type: "success" | "warn" | "error" } | null>(null);
-  const [apiLoading, setApiLoading]     = useState(false);
+  const [toast, setToast]                 = useState<{ msg: string; type: "success" | "warn" | "error" } | null>(null);
 
-  const dayRefs   = useRef<Record<number, HTMLDivElement | null>>({});
+  const dayRefs    = useRef<Record<number, HTMLDivElement | null>>({});
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const showToast = useCallback((msg: string, type: "success" | "warn" | "error" = "success") => {
@@ -418,36 +396,37 @@ export default function DSAPlannerPage() {
       .then((r) => r.json())
       .then((data: Question[]) => { setQuestions(data); setQReady(true); })
       .catch(() => showToast("Failed to load questions.", "error"));
-  }, []);
+  }, [showToast]);
 
-  /* ── Load plan from DB (with localStorage fallback) ── */
+  /* ── Load plan + streak from DB on mount ── */
   useEffect(() => {
     (async () => {
       try {
-        const res = await api.get<PlanData>("/dsa-plan");
-        const { days, done: d, completedDays: cd, activityDates: ad } = res.data;
+        const planRes = await api.get<PlanData>("/dsa-plan");
+        const { days } = planRes.data;
         if (days) {
           setPlanDays(days);
-          setDone(d);
-          setCompletedDays(new Set(cd));
-          setActivityDates(ad ?? []);
-          // sync to localStorage as fallback cache
           lsSet("dsa_plan_days", days);
-          lsSet("dsa_done", d);
-          lsSet("dsa_completed_days", cd);
-          lsSet("dsa_activity_dates", ad ?? []);
-          return;
         }
-      } catch { /* fall through to localStorage */ }
+      } catch { /* fall through */ }
 
-      // localStorage fallback
-      const days = lsGet<number | null>("dsa_plan_days", null);
-      if (days) {
-        setPlanDays(days);
-        setDone(lsGet("dsa_done", {}));
-        setCompletedDays(new Set(lsGet<number[]>("dsa_completed_days", [])));
+      try {
+        const streakRes = await api.get<StreakData>("/streak");
+        const { streak: s, visitDates } = streakRes.data;
+        setStreak(s);
+        const lsDates = lsGet<string[]>("dsa_activity_dates", []);
+        const merged = Array.from(new Set([...visitDates, ...lsDates]));
+        setActivityDates(merged);
+        lsSet("dsa_activity_dates", merged);
+      } catch {
         setActivityDates(lsGet<string[]>("dsa_activity_dates", []));
       }
+
+      setDone(lsGet("dsa_done", {}));
+      setCompletedDays(new Set(lsGet<number[]>("dsa_completed_days", [])));
+
+      const lsDays = lsGet<number | null>("dsa_plan_days", null);
+      if (lsDays) setPlanDays((prev) => prev ?? lsDays);
     })();
   }, []);
 
@@ -458,7 +437,7 @@ export default function DSAPlannerPage() {
     const numGroups = Math.ceil(questions.length / perDay);
     const first = Array.from({ length: numGroups }, (_, i) => i).find((i) => !completedDays.has(i)) ?? 0;
     setOpenDay(first);
-  }, [questionsReady, planDays]);
+  }, [questionsReady, planDays, questions.length, completedDays]);
 
   /* ── Scroll to open day ── */
   useEffect(() => {
@@ -468,7 +447,6 @@ export default function DSAPlannerPage() {
 
   /* ── Start plan ── */
   const handleStart = useCallback(async (days: number) => {
-    const payload = { days };
     lsSet("dsa_plan_days", days);
     lsSet("dsa_done", {});
     lsSet("dsa_completed_days", []);
@@ -477,9 +455,10 @@ export default function DSAPlannerPage() {
     setDone({});
     setCompletedDays(new Set());
     setActivityDates([]);
+    setStreak(0);
     setOpenDay(0);
     showToast("Plan locked! Let's crush it 🔒");
-    try { await api.post("/dsa-plan/start", payload); } catch { /* silent */ }
+    try { await api.post("/dsa-plan/start", { days }); } catch { /* silent */ }
   }, [showToast]);
 
   /* ── Change plan duration ── */
@@ -492,7 +471,6 @@ export default function DSAPlannerPage() {
     for (let i = 0; i < questions.length; i += newPerDay)
       newGroups.push(questions.slice(i, i + newPerDay));
 
-    // Recalculate completedDays based on new grouping + existing done state
     const newCompletedDays = new Set(
       newGroups
         .map((group, idx) => (group.every((q) => done[q.id]) ? idx : -1))
@@ -508,23 +486,16 @@ export default function DSAPlannerPage() {
 
     showToast(`Plan updated to ${newDays} days ✓`);
 
-    // Re-open first incomplete day
     const first = Array.from({ length: newGroups.length }, (_, i) => i).find((i) => !newCompletedDays.has(i)) ?? 0;
     setOpenDay(first);
 
-    // ── DB call ──
-    // POST /dsa-plan/change-duration
-    // Body: { days: number }
-    // Expected: updates plan.days in DB, recalculates completedDays server-side,
-    //           returns updated PlanData (days, done, completedDays, activityDates)
     try {
-      setApiLoading(true);
-      await api.post("/dsa-plan/change-duration", { days: newDays, completedDays: cdArray });
-    } catch { /* silent */ } finally { setApiLoading(false); }
+      await api.post("/dsa-plan/change-duration", { days: newDays });
+    } catch { /* silent */ }
   }, [questions, done, showToast]);
 
   /* ── Toggle question ── */
-  const toggleQ = useCallback(async (id: number, dayIdx: number) => {
+  const toggleQ = useCallback((id: number, dayIdx: number) => {
     if (done[id] && completedDays.has(dayIdx)) {
       showToast("Day is locked — can't uncheck.", "warn");
       return;
@@ -539,7 +510,6 @@ export default function DSAPlannerPage() {
       return next;
     });
 
-    // Track activity date when checking a question
     if (newVal) {
       setActivityDates((prev) => {
         if (prev.includes(today)) return prev;
@@ -548,14 +518,6 @@ export default function DSAPlannerPage() {
         return next;
       });
     }
-
-    // ── DB call ──
-    // POST /dsa-plan/toggle
-    // Body: { questionId: number, done: boolean, date: string (ISO) }
-    // Expected: updates done[questionId], appends date to activityDates if done=true
-    try {
-      await api.post("/dsa-plan/toggle", { questionId: id, done: newVal, date: today });
-    } catch { /* silent */ }
   }, [done, completedDays, showToast]);
 
   /* ── Mark day complete ── */
@@ -571,14 +533,22 @@ export default function DSAPlannerPage() {
       lsSet("dsa_completed_days", [...next]);
       return next;
     });
+
+    const today = new Date().toISOString().split("T")[0];
+    setActivityDates((prev) => {
+      if (prev.includes(today)) return prev;
+      const next = [...prev, today];
+      lsSet("dsa_activity_dates", next);
+      return next;
+    });
+
     showToast(`🔥 Day ${dayIdx + 1} locked in!`);
 
-    // ── DB call ──
-    // POST /dsa-plan/complete-day
-    // Body: { dayIdx: number }
-    // Expected: adds dayIdx to completedDays array in DB
     try {
-      await api.post("/dsa-plan/complete-day", { dayIdx });
+      const res = await api.post<{ streak: number; maxstreak: number; updated: boolean }>(
+        "/dsa-plan/complete-day", { dayIdx }
+      );
+      if (res.data.streak !== undefined) setStreak(res.data.streak);
     } catch { /* silent */ }
   }, [done, completedDays, showToast]);
 
@@ -592,8 +562,8 @@ export default function DSAPlannerPage() {
     return groups;
   }, [planDays, questions]);
 
-  const totalDone = useMemo(() => Object.values(done).filter(Boolean).length, [done]);
-  const pct = questions.length ? Math.round((totalDone / questions.length) * 100) : 0;
+  const totalDone     = useMemo(() => Object.values(done).filter(Boolean).length, [done]);
+  const pct           = questions.length ? Math.round((totalDone / questions.length) * 100) : 0;
   const daysCompleted = completedDays.size;
 
   /* ── Screens ── */
@@ -645,7 +615,6 @@ export default function DSAPlannerPage() {
           <div style={{ position: "absolute", top: "40%", left: "25%", width: "40vw", height: "40vw", borderRadius: "50%", background: "radial-gradient(circle,rgba(96,165,250,.06) 0%,transparent 70%)", animation: "dsaOrb3 22s ease-in-out infinite" }} />
         </div>
 
-        {/* Modals & overlays */}
         {toast && <Toast msg={toast.msg} type={toast.type} />}
         {showChangePlan && (
           <ChangePlanModal
@@ -657,7 +626,7 @@ export default function DSAPlannerPage() {
 
         <div style={{ position: "relative", zIndex: 1, maxWidth: "900px", margin: "0 auto", padding: "48px 20px 72px" }}>
 
-          {/* ── Page Header ── */}
+          {/* Header */}
           <div style={{ marginBottom: "36px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", fontSize: "11px", letterSpacing: ".18em", textTransform: "uppercase", color: "#7c6dfa", marginBottom: "12px" }}>
               <div style={{ width: "22px", height: "1px", background: "#7c6dfa" }} />DSA Study Planner
@@ -670,27 +639,19 @@ export default function DSAPlannerPage() {
               <button
                 className="dsa-change-btn"
                 onClick={() => setShowChangePlan(true)}
-                style={{
-                  display: "flex", alignItems: "center", gap: "7px",
-                  padding: "10px 18px", borderRadius: "12px",
-                  background: "rgba(124,109,250,.08)", border: "1px solid rgba(124,109,250,.22)",
-                  color: "#a89cff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif",
-                  flexShrink: 0,
-                }}
-              >
-                ⚙️ Change Plan
-              </button>
+                style={{ display: "flex", alignItems: "center", gap: "7px", padding: "10px 18px", borderRadius: "12px", background: "rgba(124,109,250,.08)", border: "1px solid rgba(124,109,250,.22)", color: "#a89cff", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "'Outfit',sans-serif", flexShrink: 0 }}
+              >⚙️ Change Plan</button>
             </div>
           </div>
 
-          {/* ── Stats Row ── */}
+          {/* Stats Row */}
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(130px,1fr))", gap: "12px", marginBottom: "28px" }}>
             {[
-              { val: `${pct}%`,          label: "Completed",     icon: "🎯", accent: "#7c6dfa" },
-              { val: String(totalDone),   label: "Questions Done",icon: "✅", accent: "#34d399" },
-              { val: String(daysCompleted), label: "Days Locked", icon: "🔒", accent: "#f472b6" },
-              { val: `${planDays}d`,      label: "Total Duration",icon: "📅", accent: "#60a5fa" },
-              { val: `${qPerDay}/day`,    label: "Daily Target",  icon: "📚", accent: "#fbbf24" },
+              { val: `${pct}%`,            label: "Completed",      icon: "🎯", accent: "#7c6dfa" },
+              { val: String(totalDone),     label: "Questions Done", icon: "✅", accent: "#34d399" },
+              { val: String(daysCompleted), label: "Days Locked",    icon: "🔒", accent: "#f472b6" },
+              { val: `${planDays}d`,        label: "Total Duration", icon: "📅", accent: "#60a5fa" },
+              { val: `${qPerDay}/day`,      label: "Daily Target",   icon: "📚", accent: "#fbbf24" },
             ].map(({ val, label, icon, accent }) => (
               <div key={label} style={{ background: "rgba(255,255,255,.032)", border: "1px solid rgba(255,255,255,.07)", borderRadius: "18px", padding: "18px 16px", backdropFilter: "blur(14px)", WebkitBackdropFilter: "blur(14px)" }}>
                 <div style={{ fontSize: "18px", marginBottom: "8px" }}>{icon}</div>
@@ -700,7 +661,7 @@ export default function DSAPlannerPage() {
             ))}
           </div>
 
-          {/* ── Progress Bar ── */}
+          {/* Progress Bar */}
           <div style={{ background: "rgba(255,255,255,.05)", borderRadius: "20px", padding: "18px 22px", marginBottom: "28px", border: "1px solid rgba(255,255,255,.06)" }}>
             <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "10px" }}>
               <span style={{ fontSize: "13px", fontWeight: 500, color: "rgba(255,255,255,.6)" }}>Overall Progress</span>
@@ -711,22 +672,22 @@ export default function DSAPlannerPage() {
             </div>
           </div>
 
-          {/* ── Activity Heatmap ── */}
-          <ActivityHeatmap activityDates={activityDates} totalDone={totalDone} />
+          {/* Heatmap */}
+          <ActivityHeatmap activityDates={activityDates} totalDone={totalDone} streak={streak} />
 
-          {/* ── Click hint ── */}
+          {/* Click hint */}
           <div style={{ marginBottom: "20px", padding: "11px 16px", borderRadius: "14px", background: "rgba(124,109,250,.07)", border: "1px solid rgba(124,109,250,.14)", color: "#a89cff", fontSize: "12px", fontWeight: 500, textAlign: "center" }}>
             👆 Click any day card to expand its questions
           </div>
 
-          {/* ── Day Cards ── */}
+          {/* Day Cards */}
           <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
             {grouped.map((group, idx) => {
-              const isOpen = openDay === idx;
+              const isOpen    = openDay === idx;
               const groupDone = group.filter((q) => done[q.id]).length;
-              const allDone = groupDone === group.length;
-              const isLocked = completedDays.has(idx);
-              const pctDay = Math.round((groupDone / group.length) * 100);
+              const allDone   = groupDone === group.length;
+              const isLocked  = completedDays.has(idx);
+              const pctDay    = Math.round((groupDone / group.length) * 100);
 
               return (
                 <div
@@ -742,40 +703,33 @@ export default function DSAPlannerPage() {
                     animationDelay: `${idx * 0.02}s`,
                   }}
                 >
-                  {/* Card header */}
                   <div
                     className="dsa-toggle-day"
                     onClick={() => setOpenDay(isOpen ? null : idx)}
                     style={{
                       display: "flex", alignItems: "center", gap: "14px",
-                      padding: "18px 20px",
-                      cursor: "pointer",
+                      padding: "18px 20px", cursor: "pointer",
                       background: isLocked ? "rgba(124,109,250,.06)" : "transparent",
                       borderBottom: isOpen ? "1px solid rgba(255,255,255,.05)" : "none",
                       transition: "border-color .25s",
                     }}
                   >
-                    {/* Day badge */}
                     <div style={{
                       width: "44px", height: "44px", borderRadius: "12px", flexShrink: 0,
                       background: isLocked ? "linear-gradient(135deg,#7c6dfa,#f472b6)" : "rgba(255,255,255,.06)",
                       border: isLocked ? "none" : "1px solid rgba(255,255,255,.08)",
-                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                      color: "#fff",
+                      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", color: "#fff",
                     }}>
                       {isLocked
                         ? <span style={{ fontSize: "18px" }}>🔒</span>
                         : <span style={{ fontFamily: "'Syne',sans-serif", fontSize: "15px", fontWeight: 800 }}>{idx + 1}</span>
                       }
                     </div>
-
-                    {/* Info */}
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "6px" }}>
                         <span style={{ fontFamily: "'Syne',sans-serif", fontSize: "15px", fontWeight: 800, color: "#fff" }}>Day {idx + 1}</span>
                         {isLocked && <span style={{ fontSize: "10px", padding: "2px 8px", borderRadius: "20px", background: "rgba(124,109,250,.15)", color: "#a89cff", border: "1px solid rgba(124,109,250,.25)" }}>Locked</span>}
                       </div>
-                      {/* Mini progress bar */}
                       <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                         <div style={{ flex: 1, height: "4px", background: "rgba(255,255,255,.07)", borderRadius: "999px", overflow: "hidden" }}>
                           <div style={{ height: "100%", width: `${pctDay}%`, background: isLocked ? "linear-gradient(90deg,#7c6dfa,#f472b6)" : "#7c6dfa", borderRadius: "999px", transition: "width .4s ease" }} />
@@ -783,11 +737,9 @@ export default function DSAPlannerPage() {
                         <span style={{ fontSize: "11px", color: "rgba(255,255,255,.35)", flexShrink: 0 }}>{groupDone}/{group.length}</span>
                       </div>
                     </div>
-
                     <div style={{ fontSize: "12px", color: "rgba(255,255,255,.3)", flexShrink: 0 }}>{isOpen ? "▲" : "▼"}</div>
                   </div>
 
-                  {/* Questions panel */}
                   {isOpen && (
                     <div className="dsa-day-questions" style={{ padding: "16px" }}>
                       <div style={{ display: "flex", flexDirection: "column", gap: "8px", marginBottom: "14px" }}>
@@ -814,28 +766,20 @@ export default function DSAPlannerPage() {
                                 style={{ accentColor: "#7c6dfa", width: "16px", height: "16px", cursor: "pointer", flexShrink: 0 }}
                               />
                               <a
-                                href={q.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
+                                href={q.link} target="_blank" rel="noopener noreferrer"
                                 onClick={(e) => e.stopPropagation()}
                                 style={{
-                                  flex: 1, minWidth: 0,
-                                  fontSize: "13px", fontWeight: 500,
+                                  flex: 1, minWidth: 0, fontSize: "13px", fontWeight: 500,
                                   color: isDone ? "rgba(255,255,255,.32)" : "#c4b5fd",
                                   textDecoration: isDone ? "line-through" : "none",
                                   overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
                                 }}
                               >{q.title}</a>
-                              <span style={{
-                                fontSize: "10px", padding: "4px 8px", borderRadius: "8px", flexShrink: 0,
-                                background: tc.bg, color: tc.text, fontWeight: 600,
-                              }}>{q.topic}</span>
+                              <span style={{ fontSize: "10px", padding: "4px 8px", borderRadius: "8px", flexShrink: 0, background: tc.bg, color: tc.text, fontWeight: 600 }}>{q.topic}</span>
                             </label>
                           );
                         })}
                       </div>
-
-                      {/* Mark complete button */}
                       <button
                         className={allDone ? "dsa-btn-primary" : ""}
                         onClick={() => markDayComplete(idx, group)}
@@ -844,7 +788,8 @@ export default function DSAPlannerPage() {
                           background: isLocked ? "rgba(124,109,250,.1)" : allDone ? "linear-gradient(135deg,#7c6dfa,#f472b6)" : "rgba(255,255,255,.04)",
                           border: isLocked ? "1px solid rgba(124,109,250,.25)" : allDone ? "none" : "1px solid rgba(255,255,255,.07)",
                           color: isLocked ? "#a89cff" : allDone ? "#fff" : "rgba(255,255,255,.35)",
-                          fontSize: "13px", fontWeight: 700, cursor: allDone && !isLocked ? "pointer" : "not-allowed",
+                          fontSize: "13px", fontWeight: 700,
+                          cursor: allDone && !isLocked ? "pointer" : "not-allowed",
                           fontFamily: "'Outfit',sans-serif",
                         }}
                       >
@@ -857,7 +802,6 @@ export default function DSAPlannerPage() {
             })}
           </div>
 
-          {/* ── Completion Banner ── */}
           {pct === 100 && (
             <div style={{
               marginTop: "32px", borderRadius: "26px",
@@ -872,7 +816,6 @@ export default function DSAPlannerPage() {
               </p>
             </div>
           )}
-
         </div>
       </div>
     </>

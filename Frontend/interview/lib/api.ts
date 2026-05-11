@@ -10,20 +10,13 @@ const API_URL =
   process.env.NEXT_PUBLIC_API_URL ||
   'https://resumate-ai-2cg5.onrender.com';
 
-// -----------------------------
-// Axios Instance
-// -----------------------------
 const api = axios.create({
   baseURL: API_URL,
 });
 
-// -----------------------------
-// Attach Token
-// -----------------------------
 api.interceptors.request.use((config) => {
   if (typeof window !== 'undefined') {
     const token = localStorage.getItem('token');
-
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -31,47 +24,34 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// -----------------------------
-// AUTH APIs
-// -----------------------------
+// AUTH
 export const auth = {
-  register: (data: {
-    name: string;
-    email: string;
-    password: string;
-  }) => api.post('/auth/register', data),
+  register: (data: { name: string; email: string; password: string }) =>
+    api.post('/api/auth/register', data),
 
-  login: (data: {
-    email: string;
-    password: string;
-  }) => api.post('/auth/login', data),
+  login: (data: { email: string; password: string }) =>
+    api.post('/api/auth/login', data),
 };
 
-// -----------------------------
-// RESUME APIs
-// -----------------------------
+// RESUME
 export const resume = {
   upload: (formData: FormData) =>
-    api.post('/resume/upload', formData, {
+    api.post('/api/resume/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     }),
 };
 
-// -----------------------------
-// INTERVIEW APIs (FIXED)
-// -----------------------------
+// INTERVIEW
 export const interview = {
-  // ✅ Start Interview Session
   start: () =>
-    api.post<InterviewSession>('/interview/start'),
+    api.post<InterviewSession>('/api/interview/start'),
 
-  // ✅ Get Questions for Session (IMPORTANT FIX)
   getSession: (sessionId: string) =>
-    api.get<{ questions: Question[] }>(
-      `/interview/${sessionId}`
-    ),
-  getDashboardStats: () => api.get('/interview/dashboard/stats'),
-  // ✅ Submit Answer
+    api.get<{ questions: Question[] }>(`/api/interview/${sessionId}`),
+
+  getDashboardStats: () =>
+    api.get('/api/interview/dashboard/stats'),
+
   submitAnswer: (data: {
     sessionId: string;
     questionId: number;
@@ -81,30 +61,37 @@ export const interview = {
     api.post<{
       evaluation: AnswerEvaluation;
       completed: boolean;
-      progress: {
-        current: number;
-        total: number;
-      };
-    }>('/interview/answer', data),
+      progress: { current: number; total: number };
+    }>('/api/interview/answer', data),
 
-  // ✅ Get Final Results
   getResults: (sessionId: string) =>
-    api.get<InterviewResult>(
-      `/interview/results/${sessionId}`
-    ),
+    api.get<InterviewResult>(`/api/interview/results/${sessionId}`),
 };
 
+// STREAK
+// STREAK
 export const user = {
-  updateStreak: () => api.post('/streak'),
-};
-// -----------------------------
-// QUESTIONS APIs
-// -----------------------------
-export const questions = {
-  getAll: () => api.get<Question[]>('/questions'),
+  getStreak: () => api.get<{
+    streak: number;
+    maxstreak: number;
+    totalDays: number;
+    visitDates: string[];
+  }>('/api/streak'),
 
-  getById: (id: string) =>
-    api.get<Question>(`/questions/${id}`),
+  updateStreak: (completedDayIndex: number) =>
+    api.post<{
+      streak: number;
+      maxstreak: number;
+      totalDays: number;
+      visitDates: string[];
+      updated: boolean;
+    }>('/api/streak/update', { completedDayIndex }),
+};
+// QUESTIONS
+export const questions = {
+  getAll: () => api.get<Question[]>('/api/questions'),
+
+  getById: (id: string) => api.get<Question>(`/api/questions/${id}`),
 };
 
 export default api;

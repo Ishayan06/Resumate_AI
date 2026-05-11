@@ -36,7 +36,7 @@ app.get('/', (req, res) => {
 });
 // Routes
 app.use('/api', testRoutes);
-app.use('/api', streakRoutes);
+app.use('/api', streak);
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/resume', resumeRoutes);

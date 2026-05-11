@@ -7,7 +7,6 @@ import { isAuthenticated } from "@/lib/auth";
 import { Question } from "@/types";
 import toast from "react-hot-toast";
 
-// ─── helpers ─────────────────────────────────────────────────────────────────
 function getQuestionText(q: Question): string {
   return (q as any).questionText || (q as any).title || (q as any).text || "";
 }
@@ -15,7 +14,6 @@ function getQuestionType(q: Question): string {
   return (q as any).type || (q as any).category || "General";
 }
 
-// ─── GLOBAL CSS ──────────────────────────────────────────────────────────────
 const GLOBAL_CSS = `
   @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=Syne:wght@700;800&display=swap');
 
@@ -49,10 +47,10 @@ const GLOBAL_CSS = `
   ::-webkit-scrollbar-track { background: transparent; }
   ::-webkit-scrollbar-thumb { background: #2a2a3a; border-radius: 2px; }
 
-  /* ── Interview shell ── */
+  /* ── Interview shell — fullscreen, so no navbar offset needed ── */
   .iv-shell {
     display: flex; flex-direction: column;
-    width: 100vw; height: 100dvh; /* dynamic viewport for mobile */
+    width: 100vw; height: 100dvh;
     overflow: hidden;
     background: #0a0a0f; color: #e8e8f0;
     font-family: 'DM Sans', sans-serif;
@@ -93,11 +91,11 @@ const GLOBAL_CSS = `
   .iv-body {
     flex: 1; min-height: 0;
     display: grid;
-    grid-template-columns: 280px 1fr; /* desktop */
+    grid-template-columns: 280px 1fr;
     overflow: hidden;
   }
 
-  /* ── Sidebar (camera + question list) ── */
+  /* ── Sidebar ── */
   .iv-sidebar {
     display: flex; flex-direction: column;
     background: #0d0d14; border-right: 1px solid #1e1e2a;
@@ -105,7 +103,6 @@ const GLOBAL_CSS = `
     flex-shrink: 0;
   }
 
-  /* Camera */
   .iv-camera {
     position: relative; flex-shrink: 0;
     background: #000; overflow: hidden;
@@ -127,7 +124,6 @@ const GLOBAL_CSS = `
     background: rgba(0,0,0,0.65);
   }
 
-  /* AI speaking bar */
   .iv-wave-bar {
     display: flex; align-items: center; gap: 8px;
     padding: 8px 12px; border-bottom: 1px solid #1e1e2a; flex-shrink: 0;
@@ -141,7 +137,6 @@ const GLOBAL_CSS = `
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* Question list */
   .iv-qlist { flex: 1; overflow-y: auto; padding: 4px 0; }
   .iv-qitem {
     display: flex; align-items: flex-start; gap: 9px;
@@ -152,7 +147,6 @@ const GLOBAL_CSS = `
   .iv-qnum { font-size: 10px; font-family: monospace; font-weight: 600; min-width: 16px; padding-top: 1px; flex-shrink: 0; }
   .iv-qtext { font-size: 11px; line-height: 1.45; flex: 1; min-width: 0; }
 
-  /* ── Main interview panel ── */
   .iv-main {
     display: flex; flex-direction: column;
     padding: clamp(12px, 2vw, 20px);
@@ -161,7 +155,6 @@ const GLOBAL_CSS = `
     background: #0a0a0f;
   }
 
-  /* Question card */
   .iv-question-card {
     border-radius: 16px; padding: clamp(16px, 2.5vw, 20px) clamp(16px, 2.5vw, 24px);
     background: #0d0d14; border: 1px solid #1e1e2a;
@@ -186,7 +179,6 @@ const GLOBAL_CSS = `
   }
   .iv-q-placeholder { font-size: 13px; color: #444; font-style: italic; }
 
-  /* Answer area */
   .iv-answer-wrap {
     display: flex; flex-direction: column;
     flex: 1; min-height: 0; gap: 7px;
@@ -206,7 +198,6 @@ const GLOBAL_CSS = `
     -webkit-appearance: none;
   }
 
-  /* Action row */
   .iv-actions {
     display: flex; align-items: center; gap: 10px; flex-shrink: 0;
     flex-wrap: wrap;
@@ -244,12 +235,10 @@ const GLOBAL_CSS = `
     body { overflow: hidden; }
 
     .iv-body {
-      /* Stack: camera strip on top, main panel below */
       grid-template-columns: 1fr;
       grid-template-rows: auto 1fr;
     }
 
-    /* Sidebar becomes a horizontal strip */
     .iv-sidebar {
       flex-direction: row;
       border-right: none;
@@ -259,7 +248,6 @@ const GLOBAL_CSS = `
       align-items: stretch;
     }
 
-    /* Camera: compact thumbnail on the left */
     .iv-camera {
       width: 110px;
       height: auto;
@@ -268,10 +256,8 @@ const GLOBAL_CSS = `
       border-right: 1px solid #1e1e2a;
     }
 
-    /* Hide question list on mobile — show dots instead */
     .iv-qlist { display: none; }
 
-    /* Wave bar becomes compact right block */
     .iv-wave-bar {
       flex: 1; border-bottom: none;
       padding: 8px 10px;
@@ -280,41 +266,35 @@ const GLOBAL_CSS = `
     }
     .iv-wave-bar span { font-size: 10px; }
 
-    /* Main panel: no extra padding, fills remaining height */
     .iv-main {
       padding: 10px 12px 12px;
       gap: 8px;
       overflow: hidden;
     }
 
-    /* Question card: tighter on mobile */
     .iv-question-card { padding: 12px 14px; border-radius: 13px; }
     .iv-q-text { font-size: 15px; line-height: 1.55; }
 
-    /* Textarea: make sure it fills but doesn't overflow */
     .iv-textarea { font-size: 14px; padding: 12px; border-radius: 11px; }
 
-    /* Actions: keep in one row */
     .iv-actions { flex-wrap: nowrap; gap: 8px; }
     .iv-mic-btn { width: 40px; height: 40px; font-size: 16px; }
     .iv-submit-btn { padding: 11px 18px; font-size: 13px; }
     .iv-word-count { display: none; }
 
-    /* Progress dots for mobile — shown only on mobile */
     .iv-mobile-dots { display: flex; }
 
-    /* Topbar: compact */
     .iv-topbar { padding: 6px 10px; min-height: 38px; }
     .iv-session-id { font-size: 10px; }
     .iv-progress-label { font-size: 9px; }
   }
 
-  /* ── Always hide mobile dots on desktop ── */
   .iv-mobile-dots { display: none; }
 
-  /* ── Gate screen ── */
+  /* ── Gate screen — needs navbar offset since not in fullscreen ── */
   .iv-gate {
-    width: 100vw; height: 100dvh;
+    width: 100vw; height: calc(100dvh - 64px);
+    margin-top: 64px;
     display: flex; align-items: center; justify-content: center;
     background: #0a0a0f; font-family: 'DM Sans', sans-serif;
     position: relative; overflow: hidden;
@@ -358,9 +338,10 @@ const GLOBAL_CSS = `
   }
   .iv-gate-violations { font-size: 11px; color: #ef4444; }
 
-  /* ── Loading screen ── */
+  /* ── Loading screen — needs navbar offset since not in fullscreen ── */
   .iv-loading {
-    width: 100vw; height: 100dvh;
+    width: 100vw; height: calc(100dvh - 64px);
+    margin-top: 64px;
     display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px;
     background: #0a0a0f;
   }
@@ -371,14 +352,12 @@ const GLOBAL_CSS = `
   }
   .iv-loading-text { font-size: 12px; color: #444; font-family: monospace; }
 
-  /* ── Reduce motion ── */
   @media (prefers-reduced-motion: reduce) {
     .iv-gate-icon { animation: none; }
     .iv-loading-ring { animation: none; border-top-color: #6366f1; }
   }
 `;
 
-/* ─── COMPONENT ────────────────────────────────────────────────────────────── */
 export default function InterviewSession() {
   const router = useRouter();
   const params = useParams();
@@ -400,7 +379,6 @@ export default function InterviewSession() {
   const recognitionRef = useRef<any>(null);
   const voicesReadyRef = useRef(false);
 
-  // Inject global CSS once
   useEffect(() => {
     const id = "iv-global-css";
     if (!document.getElementById(id)) {
@@ -411,12 +389,10 @@ export default function InterviewSession() {
     return () => { document.getElementById(id)?.remove(); };
   }, []);
 
-  // Auth
   useEffect(() => {
     if (!isAuthenticated()) router.replace("/login");
   }, []);
 
-  // Fetch session
   useEffect(() => {
     if (!sessionId) return;
     (async () => {
@@ -432,7 +408,6 @@ export default function InterviewSession() {
     })();
   }, [sessionId]);
 
-  // Voice
   const speakText = useCallback((text: string) => {
     if (!text || typeof window === "undefined") return;
     const doSpeak = () => {
@@ -465,14 +440,12 @@ export default function InterviewSession() {
     }
   }, []);
 
-  // Auto-speak on question change
   useEffect(() => {
     if (!isFullscreen || questions.length === 0) return;
     const q = questions[currentIndex];
     if (q) { const text = getQuestionText(q); if (text) speakText(text); }
   }, [currentIndex, isFullscreen, questions, speakText]);
 
-  // Camera
   useEffect(() => {
     if (!isFullscreen) return;
     (async () => {
@@ -486,7 +459,6 @@ export default function InterviewSession() {
     })();
   }, [isFullscreen]);
 
-  // Stop all
   const stopAll = useCallback(() => {
     streamRef.current?.getTracks().forEach((t) => t.stop());
     streamRef.current = null;
@@ -496,7 +468,6 @@ export default function InterviewSession() {
     setCameraReady(false); setIsListening(false); setIsSpeaking(false);
   }, []);
 
-  // Fullscreen guard
   useEffect(() => {
     const onChange = () => {
       if (!document.fullscreenElement && isFullscreen) {
@@ -508,7 +479,6 @@ export default function InterviewSession() {
     return () => document.removeEventListener("fullscreenchange", onChange);
   }, [isFullscreen, stopAll]);
 
-  // Tab switch guard
   useEffect(() => {
     const handle = () => {
       if (document.hidden) { toast.error("Tab switch detected — violation recorded"); setViolations((v) => v + 1); }
@@ -517,7 +487,6 @@ export default function InterviewSession() {
     return () => document.removeEventListener("visibilitychange", handle);
   }, []);
 
-  // Enter fullscreen
   const enterFullscreen = async () => {
     try {
       await document.documentElement.requestFullscreen();
@@ -529,13 +498,11 @@ export default function InterviewSession() {
     }
   };
 
-  // Replay
   const replayQuestion = () => {
     const q = questions[currentIndex];
     if (q) speakText(getQuestionText(q));
   };
 
-  // Mic toggle
   const toggleMic = () => {
     const SR = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SR) { toast.error("Speech recognition not supported in this browser."); return; }
@@ -553,7 +520,6 @@ export default function InterviewSession() {
     rec.start(); setIsListening(true);
   };
 
-  // Submit
   const handleSubmit = async () => {
     if (!answer.trim()) return;
     recognitionRef.current?.stop(); setIsListening(false); setSubmitting(true);
@@ -568,7 +534,6 @@ export default function InterviewSession() {
     }
   };
 
-  // Derived
   const wordCount    = answer.trim() ? answer.trim().split(/\s+/).length : 0;
   const progressPct  = questions.length > 0 ? (currentIndex / questions.length) * 100 : 0;
   const isLast       = currentIndex + 1 === questions.length;
@@ -576,7 +541,6 @@ export default function InterviewSession() {
   const questionText = currentQ ? getQuestionText(currentQ) : "";
   const questionType = currentQ ? getQuestionType(currentQ) : "";
 
-  // ── Loading ──
   if (loading) {
     return (
       <div className="iv-loading">
@@ -586,7 +550,6 @@ export default function InterviewSession() {
     );
   }
 
-  // ── Gate screen ──
   if (!isFullscreen) {
     return (
       <div className="iv-gate">
@@ -618,11 +581,8 @@ export default function InterviewSession() {
     );
   }
 
-  // ── Main interview UI ──
   return (
     <div className="iv-shell">
-
-      {/* Top bar */}
       <div className="iv-topbar">
         <div className="iv-session-id">
           <div style={{ width: 6, height: 6, borderRadius: "50%", background: "#ef4444", animation: "blink 1.2s infinite", flexShrink: 0 }} />
@@ -642,13 +602,8 @@ export default function InterviewSession() {
         </div>
       </div>
 
-      {/* Body */}
       <div className="iv-body">
-
-        {/* Sidebar (desktop: left col; mobile: top strip) */}
         <div className="iv-sidebar">
-
-          {/* Camera */}
           <div className="iv-camera">
             <video
               ref={videoRef} autoPlay muted playsInline
@@ -669,7 +624,6 @@ export default function InterviewSession() {
             )}
           </div>
 
-          {/* AI wave + replay */}
           <div className="iv-wave-bar">
             <div className="iv-waves">
               {[6, 12, 8, 15, 8, 12, 6].map((h, i) => (
@@ -683,8 +637,6 @@ export default function InterviewSession() {
             </div>
             <span>AI <span style={{ color: isSpeaking ? "#a78bfa" : "#333" }}>{isSpeaking ? "speaking…" : "ready"}</span></span>
             <button className="iv-replay-btn" onClick={replayQuestion}>↩ Replay</button>
-
-            {/* Mobile: progress dots */}
             <div className="iv-mobile-dots" style={{ display: "none", alignItems: "center", gap: 5, marginTop: 4 }}>
               {questions.map((_, i) => (
                 <div key={i} style={{
@@ -696,7 +648,6 @@ export default function InterviewSession() {
             </div>
           </div>
 
-          {/* Desktop question list */}
           <div className="iv-qlist">
             {questions.map((q, i) => (
               <div key={(q as any).id || i} className="iv-qitem" style={{
@@ -714,10 +665,7 @@ export default function InterviewSession() {
           </div>
         </div>
 
-        {/* Main panel */}
         <div className="iv-main">
-
-          {/* Question card */}
           <div className="iv-question-card">
             <div className="iv-q-meta">
               <div className="iv-q-badge">Question {currentIndex + 1}</div>
@@ -729,7 +677,6 @@ export default function InterviewSession() {
             }
           </div>
 
-          {/* Answer */}
           <div className="iv-answer-wrap">
             <div className="iv-answer-label">
               <span>Your Answer</span>
@@ -751,7 +698,6 @@ export default function InterviewSession() {
             />
           </div>
 
-          {/* Actions */}
           <div className="iv-actions">
             <button
               className="iv-mic-btn"
@@ -767,9 +713,7 @@ export default function InterviewSession() {
             >
               🎤
             </button>
-
             <span className="iv-word-count">{wordCount} {wordCount === 1 ? "word" : "words"}</span>
-
             <button
               className="iv-submit-btn"
               onClick={handleSubmit}
@@ -789,7 +733,6 @@ export default function InterviewSession() {
         </div>
       </div>
 
-      {/* Mobile dots — rendered via CSS display toggle */}
       <style>{`
         @media (max-width: 700px) {
           .iv-mobile-dots { display: flex !important; }

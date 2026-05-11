@@ -1,8 +1,9 @@
 const express = require('express');
-const router = express.Router();
-const { updateStreak } = require('../controllers/streakController');
-const authMiddleware = require('../middleware/authMiddleware'); // your existing JWT middleware
+const router  = express.Router();
+const auth    = require('../middleware/authMiddleware');
+const { getStreak, updateStreak } = require('../controllers/streakController');
 
-router.post('/streak', authMiddleware, updateStreak);
+router.get ('/',       auth, getStreak);
+router.post('/update', auth, updateStreak);
 
 module.exports = router;
