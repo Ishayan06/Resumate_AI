@@ -18,7 +18,22 @@ const app = express();
 // Middleware
 app.use(cors());
 app.use(express.json());
-
+// Add this before your other routes
+app.get('/', (req, res) => {
+    res.json({
+        status: '🚀 Resumate AI Backend is Live!',
+        endpoints: {
+            test: '/api/test',
+            auth: '/api/auth',
+            resume: '/api/resume',
+            interview: '/api/interview',
+            questions: '/api/questions',
+            streak: '/api/streak',
+            telegram: '/api/telegram',
+            reminder: '/api/reminder'
+        }
+    });
+});
 // Routes
 app.use('/api', testRoutes);
 app.use('/api', streakRoutes);
