@@ -2,7 +2,7 @@
 
 import React, { useMemo, useState, useEffect, useRef, useCallback } from "react";
 import api from "@/lib/api";
-
+import { dsaPlan, user } from "@/lib/api";
 /* ─── Types ─────────────────────────────────────────────────────────── */
 interface Question {
   id: number;
@@ -402,7 +402,7 @@ export default function DSAPlannerPage() {
   useEffect(() => {
     (async () => {
       try {
-        const planRes = await api.get<PlanData>("/dsa-plan");
+        const planRes = await dsaPlan.getPlan();
         const { days } = planRes.data;
         if (days) {
           setPlanDays(days);
@@ -411,7 +411,7 @@ export default function DSAPlannerPage() {
       } catch { /* fall through */ }
 
       try {
-        const streakRes = await api.get<StreakData>("/streak");
+        const streakRes = await user.getStreak();
         const { streak: s, visitDates } = streakRes.data;
         setStreak(s);
         const lsDates = lsGet<string[]>("dsa_activity_dates", []);
@@ -458,7 +458,7 @@ export default function DSAPlannerPage() {
     setStreak(0);
     setOpenDay(0);
     showToast("Plan locked! Let's crush it 🔒");
-    try { await api.post("/dsa-plan/start", { days }); } catch { /* silent */ }
+    try { await dsaPlan.start(days); } catch { /* silent */ }
   }, [showToast]);
 
   /* ── Change plan duration ── */
@@ -490,7 +490,7 @@ export default function DSAPlannerPage() {
     setOpenDay(first);
 
     try {
-      await api.post("/dsa-plan/change-duration", { days: newDays });
+      await dsaPlan.changeDuration(newDays);
     } catch { /* silent */ }
   }, [questions, done, showToast]);
 
@@ -545,9 +545,7 @@ export default function DSAPlannerPage() {
     showToast(`🔥 Day ${dayIdx + 1} locked in!`);
 
     try {
-      const res = await api.post<{ streak: number; maxstreak: number; updated: boolean }>(
-        "/dsa-plan/complete-day", { dayIdx }
-      );
+      const res = await dsaPlan.completeDay(dayIdx);
       if (res.data.streak !== undefined) setStreak(res.data.streak);
     } catch { /* silent */ }
   }, [done, completedDays, showToast]);
