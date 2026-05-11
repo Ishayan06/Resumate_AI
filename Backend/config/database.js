@@ -1,16 +1,14 @@
 const { Pool } = require('pg');
-require('dotenv').config({ path: '../.env' }); // 👈 important
+const path = require('path');
+require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // 👈 .env is inside Backend/
 
 console.log("HOST:", process.env.DB_HOST);
 console.log("USER:", process.env.DB_USER);
 console.log("DB:", process.env.DB_NAME);
+// console.log("DATABASE_URL:", process.env.DATABASE_URL ?? "❌ NOT FOUND");
 
 const pool = new Pool({
-    user: process.env.DB_USER,
-    host: process.env.DB_HOST,
-    database: process.env.DB_NAME,
-    password: process.env.DB_PASSWORD,
-    port: parseInt(process.env.DB_PORT, 10),
+    connectionString: process.env.DATABASE_URL,
     ssl: {
         rejectUnauthorized: false
     }
