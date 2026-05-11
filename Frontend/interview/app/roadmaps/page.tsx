@@ -27,7 +27,7 @@ const roadmaps = [
     weeks: 6,
     desc: "Learn OS, DBMS, Networks and OOPs — the fundamentals every interviewer expects.",
     topics: ["Operating Systems", "DBMS", "Computer Networks", "OOPs", "System Design", "SQL"],
-    route: "/roadmaps/cs-core",
+    route: "/roadmaps/core-cs",
   },
   {
     title: "Web Development",

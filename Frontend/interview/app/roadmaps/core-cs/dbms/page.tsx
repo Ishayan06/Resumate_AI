@@ -158,7 +158,7 @@ function ModuleCard({ s, delay }: { s: Section; delay: number }) {
       </div>
       <div className="mod-links">
         {s.links.map((l) => (
-          <a key={l.url} href={l.url} target="_blank" rel="noopener noreferrer" className="mod-link">
+          <a key={`${l.url}-${l.label}`} href={l.url} target="_blank" rel="noopener noreferrer" className="mod-link">
             <span className="mod-link-dot" style={{ background: s.accent }} />
             {l.label}
             <span className="mod-link-arr">↗</span>

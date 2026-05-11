@@ -205,8 +205,7 @@ export default function CoreCSPage() {
               {[
                 ["6", "SUBJECTS"],
                 ["100%", "FREE"],
-                ["PLACEMENTS", "FOCUSED"],
-                ["🔥", "ESSENTIAL"],
+                ["PLACEMENTS", "FOCUSED"]
               ].map(([n, l]) => (
                 <div key={l}>
                   <div style={{ fontFamily: "'Syne',sans-serif", fontSize: "24px", fontWeight: 800 }}>
