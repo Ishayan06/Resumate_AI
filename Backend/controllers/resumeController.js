@@ -1,4 +1,4 @@
-const Resume = require('../models/Resume');
+const Resume = require('../models/resume');
 const GeneratedQuestion = require('../models/GeneratedQuestion');
 
 const Groq = require("groq-sdk");
