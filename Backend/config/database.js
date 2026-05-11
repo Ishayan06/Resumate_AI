@@ -1,23 +1,16 @@
 const { Pool } = require('pg');
 const path = require('path');
-require('dotenv').config({ path: path.resolve(__dirname, '.env') }); // 👈 .env is inside Backend/
+require('dotenv').config({ path: path.resolve(__dirname, '.env') });
 
-console.log("HOST:", process.env.DB_HOST);
-console.log("USER:", process.env.DB_USER);
-console.log("DB:", process.env.DB_NAME);
-// console.log("DATABASE_URL:", process.env.DATABASE_URL ?? "❌ NOT FOUND");
+console.log("DATABASE_URL:", process.env.DATABASE_URL ?? "❌ NOT FOUND");
 
 const pool = new Pool({
     connectionString: process.env.DATABASE_URL,
-    ssl: {
-        rejectUnauthorized: false
-    }
+    ssl: { rejectUnauthorized: false }
 });
 
 pool.connect((err, client, release) => {
-    if (err) {
-        return console.error('❌ Error connecting to database:', err.stack);
-    }
+    if (err) return console.error('❌ Error connecting to database:', err.stack);
     console.log('✅ Connected to PostgreSQL database successfully!');
     release();
 });
