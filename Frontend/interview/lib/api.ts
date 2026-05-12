@@ -32,6 +32,7 @@ export const auth = {
   login: (data: { email: string; password: string }) =>
     api.post('/api/auth/login', data),
 };
+
 // DSA PLAN
 export const dsaPlan = {
   getPlan: () =>
@@ -55,6 +56,7 @@ export const dsaPlan = {
       updated: boolean;
     }>('/api/dsa-plan/complete-day', { dayIdx }),
 };
+
 // RESUME
 export const resume = {
   upload: (formData: FormData) =>
@@ -91,7 +93,6 @@ export const interview = {
 };
 
 // STREAK
-// STREAK
 export const user = {
   getStreak: () => api.get<{
     streak: number;
@@ -109,6 +110,7 @@ export const user = {
       updated: boolean;
     }>('/api/streak/update', { completedDayIndex }),
 };
+
 // QUESTIONS
 export const questions = {
   getAll: () => api.get<Question[]>('/api/questions'),
@@ -116,4 +118,16 @@ export const questions = {
   getById: (id: string) => api.get<Question>(`/api/questions/${id}`),
 };
 
-export default api;
+// COMMUNICATION
+export const communication = {
+  getPoints: () =>
+    api.get<{ communication_points: number }>('/api/communication/points'),
+
+  updatePoints: (points: number) =>
+    api.post<{ success: boolean; communication_points: number }>(
+      '/api/communication/update-points',
+      { points }
+    ),
+};
+
+export default api; 

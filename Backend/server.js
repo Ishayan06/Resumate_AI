@@ -13,6 +13,7 @@ const streakRoutes    = require('./routes/streak');
 const telegramRoutes  = require('./routes/telegramRoutes');
 const reminderRoutes  = require('./routes/reminderRoutes');
 const dsaPlanRoutes   = require('./routes/dsaPlan');
+const communicationRoutes = require('./routes/communicationRoutes');
 
 const app = express();
 
@@ -38,6 +39,7 @@ app.get('/', (req, res) => {
 });
 
 // Routes
+app.use('/api/communication', communicationRoutes);
 app.use('/api/test',      testRoutes);
 app.use('/api/questions', questionRoutes);
 app.use('/api/auth',      authRoutes);

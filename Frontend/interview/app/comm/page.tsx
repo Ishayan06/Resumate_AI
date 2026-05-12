@@ -2,8 +2,7 @@
 
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
-
-const USER_ID = "YOUR_USER_ID";
+import { communication } from "@/lib/api"; // adjust path to your api.ts
 
 // ─────────────────────────────────────────────────────────────
 // SPEECH RECOGNITION TYPES FIX
@@ -58,7 +57,7 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              userId: USER_ID,
+              userId: "YOUR_USER_ID",
               telegramUsername: clean,
             }),
           }
@@ -69,7 +68,7 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
         setSaved(true);
 
         window.open(
-          `https://t.me/${BOT_USERNAME}?start=${USER_ID}`,
+          `https://t.me/${BOT_USERNAME}?start=YOUR_USER_ID`,
           "_blank"
         );
 
@@ -204,9 +203,7 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
               alignItems: "center",
               background: "rgba(255,255,255,0.04)",
               border: `0.5px solid ${
-                error
-                  ? "rgba(239,68,68,0.5)"
-                  : "rgba(255,255,255,0.10)"
+                error ? "rgba(239,68,68,0.5)" : "rgba(255,255,255,0.10)"
               }`,
               borderRadius: "10px",
               overflow: "hidden",
@@ -326,9 +323,10 @@ const PROMPTS = [
 ];
 
 const fmt = (s: number) =>
-  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(
-    s % 60
-  ).padStart(2, "0")}`;
+  `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(
+    2,
+    "0"
+  )}`;
 
 const MainPage = () => {
   const router = useRouter();
@@ -340,6 +338,19 @@ const MainPage = () => {
   const [isRunning, setIsRunning] = useState(false);
   const [points, setPoints] = useState(0);
   const [cameraReady, setCameraReady] = useState(false);
+
+  // ── refs to track awarded milestones & bonus ──
+  const awardedMilestones = useRef(new Set<number>());
+  const lastBonusAt = useRef(0);
+
+  // ── save points to backend ──
+  const savePoints = useCallback(async (pts: number) => {
+    try {
+      await communication.updatePoints(pts);
+    } catch (err) {
+      console.error("Failed to save points", err);
+    }
+  }, []);
 
   useEffect(() => {
     const startCamera = async () => {
@@ -368,6 +379,7 @@ const MainPage = () => {
     };
   }, []);
 
+  // ── timer ──
   useEffect(() => {
     if (!isRunning) return;
 
@@ -378,6 +390,31 @@ const MainPage = () => {
     return () => clearInterval(interval);
   }, [isRunning]);
 
+  // ── milestone + bonus point awarding ──
+  useEffect(() => {
+    if (!isRunning) return;
+
+    // Milestones
+    MILESTONES.forEach((m) => {
+      if (seconds === m.sec && !awardedMilestones.current.has(m.sec)) {
+        awardedMilestones.current.add(m.sec);
+        setPoints((prev) => prev + m.pts);
+        savePoints(m.pts);
+      }
+    });
+
+    // Bonus every 5 min after 10:00
+    if (
+      seconds > 600 &&
+      seconds % BONUS_INTERVAL_SEC === 0 &&
+      seconds !== lastBonusAt.current
+    ) {
+      lastBonusAt.current = seconds;
+      setPoints((prev) => prev + BONUS_PTS);
+      savePoints(BONUS_PTS);
+    }
+  }, [seconds, isRunning, savePoints]);
+
   const handleStart = () => setIsRunning(true);
   const handleStop = () => setIsRunning(false);
 
@@ -385,6 +422,8 @@ const MainPage = () => {
     setIsRunning(false);
     setSeconds(0);
     setPoints(0);
+    awardedMilestones.current.clear();
+    lastBonusAt.current = 0;
   };
 
   const progressPct = Math.min((seconds / 300) * 100, 100);
@@ -584,8 +623,7 @@ const MainPage = () => {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns:
-                "repeat(auto-fit,minmax(140px,1fr))",
+              gridTemplateColumns: "repeat(auto-fit,minmax(140px,1fr))",
               gap: "10px",
             }}
           >
@@ -599,86 +637,92 @@ const MainPage = () => {
               <div style={valStyle}>{points}</div>
             </div>
           </div>
-            <div style={cardStyle}>
-  <div style={labelStyle}>⚡ Point System</div>
 
-  <div
-    style={{
-      display: "flex",
-      flexDirection: "column",
-      gap: "7px",
-      marginTop: "10px",
-    }}
-  >
-    {MILESTONES.map((m) => (
-      <div
-        key={m.sec}
-        style={{
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "8px 10px",
-          borderRadius: "10px",
-          background: "rgba(255,255,255,0.03)",
-          border: "0.5px solid rgba(255,255,255,0.06)",
-        }}
-      >
-        <span
-          style={{
-            fontSize: "12px",
-            color: "rgba(255,255,255,0.55)",
-            fontWeight: 500,
-          }}
-        >
-          {fmt(m.sec)}
-        </span>
+          <div style={cardStyle}>
+            <div style={labelStyle}>⚡ Point System</div>
 
-        <span
-          style={{
-            fontSize: "12px",
-            color: "#60a5fa",
-            fontWeight: 700,
-          }}
-        >
-          +{m.pts} pts
-        </span>
-      </div>
-    ))}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "7px",
+                marginTop: "10px",
+              }}
+            >
+              {MILESTONES.map((m) => (
+                <div
+                  key={m.sec}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    padding: "8px 10px",
+                    borderRadius: "10px",
+                    background: awardedMilestones.current.has(m.sec)
+                      ? "rgba(37,99,235,0.12)"
+                      : "rgba(255,255,255,0.03)",
+                    border: awardedMilestones.current.has(m.sec)
+                      ? "0.5px solid rgba(59,130,246,0.3)"
+                      : "0.5px solid rgba(255,255,255,0.06)",
+                  }}
+                >
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "rgba(255,255,255,0.55)",
+                      fontWeight: 500,
+                    }}
+                  >
+                    {fmt(m.sec)}
+                  </span>
 
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        padding: "8px 10px",
-        borderRadius: "10px",
-        background: "rgba(59,130,246,0.08)",
-        border: "0.5px solid rgba(59,130,246,0.16)",
-        marginTop: "4px",
-      }}
-    >
-      <span
-        style={{
-          fontSize: "12px",
-          color: "rgba(147,197,253,0.75)",
-          fontWeight: 500,
-        }}
-      >
-        Every 5 min after 10:00
-      </span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      color: "#60a5fa",
+                      fontWeight: 700,
+                    }}
+                  >
+                    +{m.pts} pts
+                  </span>
+                </div>
+              ))}
 
-      <span
-        style={{
-          fontSize: "12px",
-          color: "#93c5fd",
-          fontWeight: 700,
-        }}
-      >
-        +{BONUS_PTS} pts
-      </span>
-    </div>
-  </div>
-</div>
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  padding: "8px 10px",
+                  borderRadius: "10px",
+                  background: "rgba(59,130,246,0.08)",
+                  border: "0.5px solid rgba(59,130,246,0.16)",
+                  marginTop: "4px",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "rgba(147,197,253,0.75)",
+                    fontWeight: 500,
+                  }}
+                >
+                  Every 5 min after 10:00
+                </span>
+
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "#93c5fd",
+                    fontWeight: 700,
+                  }}
+                >
+                  +{BONUS_PTS} pts
+                </span>
+              </div>
+            </div>
+          </div>
+
           <div style={cardStyle}>
             <div style={labelStyle}>💬 Speaking prompts</div>
 
@@ -744,10 +788,7 @@ const Page = () => {
 
   return (
     <>
-      {!gateCleared && (
-        <OnboardingGate onComplete={handleComplete} />
-      )}
-
+      {!gateCleared && <OnboardingGate onComplete={handleComplete} />}
       {showMain && <MainPage />}
     </>
   );
