@@ -488,7 +488,7 @@ export default function ResumeCreate() {
         filename: `${basics.name.replace(/\s+/g, "_")}_resume.pdf`,
         image: { type: "jpeg", quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, allowTaint: true, scrollX: 0, scrollY: 0, windowWidth: 794, windowHeight: 1123, backgroundColor: "#ffffff" },
-        jsPDF: { unit: "mm", format: "a4", orientation: "portrait", compress: true },
+        jsPDF: { unit: "mm", format: "a4", orientation: "portrait" },
       }).from(doc.documentElement).save().then(cleanup).catch(cleanup);
     };
     iframe.addEventListener("load", () => setTimeout(go, 800));

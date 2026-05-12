@@ -12,12 +12,7 @@ interface SpeechRecorderProps {
   setIsListening: (value: boolean) => void;
 }
 
-declare global {
-  interface Window {
-    webkitSpeechRecognition: any;
-    SpeechRecognition: any;
-  }
-}
+
 
 export default function SpeechRecorder({
   onTranscript,
