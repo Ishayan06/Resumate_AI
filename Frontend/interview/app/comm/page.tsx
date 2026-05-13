@@ -4,6 +4,8 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { communication } from "@/lib/api"; // adjust path to your api.ts
 
+const API_URL = "https://resumate-ai-2cg5.onrender.com";
+
 // ─────────────────────────────────────────────────────────────
 // SPEECH RECOGNITION TYPES FIX
 // ─────────────────────────────────────────────────────────────
@@ -51,24 +53,38 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
       if (withTelegram) {
         const clean = username.replace(/^@/, "").trim();
 
-        const res = await fetch(
-          "http://localhost:3001/api/telegram/save-user",
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              userId: "YOUR_USER_ID",
-              telegramUsername: clean,
-            }),
-          }
-        );
+        // ── get real userId from localStorage (adjust key if needed) ──
+        const authRaw = localStorage.getItem("user") || localStorage.getItem("authUser") || "{}";
+        let userId: string | null = null;
+        try {
+          const parsed = JSON.parse(authRaw);
+          userId = parsed?.id || parsed?._id || parsed?.userId || null;
+        } catch {
+          userId = null;
+        }
+
+        if (!userId) {
+          setError("Please log in first.");
+          setLoading(false);
+          return;
+        }
+
+        const res = await fetch(`${API_URL}/api/telegram/save-user`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId,
+            telegramUsername: clean,
+          }),
+        });
 
         if (!res.ok) throw new Error("Failed to save");
 
         setSaved(true);
 
+        // pass real userId so bot can link the chat_id
         window.open(
-          `https://t.me/${BOT_USERNAME}?start=YOUR_USER_ID`,
+          `https://t.me/${BOT_USERNAME}?start=${userId}`,
           "_blank"
         );
 
@@ -400,6 +416,15 @@ const MainPage = () => {
         awardedMilestones.current.add(m.sec);
         setPoints((prev) => prev + m.pts);
         savePoints(m.pts);
+
+        // ── at 5 min mark, tell backend session is done ──
+        // so the daily reminder is skipped for today
+        if (m.sec === 300) {
+          fetch(`${API_URL}/api/session/complete`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+          }).catch(console.error);
+        }
       }
     });
 
