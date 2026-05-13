@@ -370,24 +370,26 @@ const MainPage = () => {
 
   useEffect(() => {
     const startCamera = async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-          audio: true,
-        });
+  try {
+    const stream = await navigator.mediaDevices.getUserMedia({
+      video: true,
+      audio: true,
+    });
 
-        streamRef.current = stream;
+    streamRef.current = stream;
+    setCameraReady(true);
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-          videoRef.current.play().catch(console.error);
-        }
-
-        setCameraReady(true);
-      } catch (err) {
-        console.error(err);
+    // wait for React to render the <video> element, then assign
+    setTimeout(() => {
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        videoRef.current.play().catch(console.error);
       }
-    };
+    }, 100);
+  } catch (err) {
+    console.error(err);
+  }
+};
 
     startCamera();
 
