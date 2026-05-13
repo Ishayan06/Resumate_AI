@@ -2,8 +2,10 @@ const express = require('express');
 const cors = require('cors');
 const testAll = require('./startupTest');
 require('dotenv').config();
-
+const cron = require('node-cron');
+const { sendDailyReminders } = require('./controllers/reminderController');
 // Import routes
+const sessionRoutes = require('./routes/session');
 const testRoutes      = require('./routes/testRoutes');
 const questionRoutes  = require('./routes/questionRoutes');
 const authRoutes      = require('./routes/authRoutes');
@@ -49,6 +51,13 @@ app.use('/api/telegram',  telegramRoutes);
 app.use('/api/reminder',  reminderRoutes);
 app.use('/api/streak',    streakRoutes);
 app.use('/api/dsa-plan',  dsaPlanRoutes);
+app.use('/api/session', sessionRoutes);
+
+// 9 AM IST = 3:30 AM UTC daily
+cron.schedule('30 3 * * *', () => {
+  console.log('⏰ Running daily reminder cron...');
+  sendDailyReminders().catch(console.error);
+});
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
