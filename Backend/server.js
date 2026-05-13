@@ -54,7 +54,7 @@ app.use('/api/dsa-plan',  dsaPlanRoutes);
 app.use('/api/session', sessionRoutes);
 
 
-cron.schedule('5 1 * * *', () => {
+cron.schedule('22 1 * * *', () => {
   sendDailyReminders().catch(console.error);
 }, {
   timezone: "Asia/Kolkata"
