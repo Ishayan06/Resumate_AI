@@ -54,9 +54,10 @@ app.use('/api/dsa-plan',  dsaPlanRoutes);
 app.use('/api/session', sessionRoutes);
 
 
-cron.schedule('0 0 * * *', () => {
-  console.log('⏰ Running daily reminder cron...');
+cron.schedule('26 0 * * *', () => {
   sendDailyReminders().catch(console.error);
+}, {
+  timezone: "Asia/Kolkata"
 });
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
