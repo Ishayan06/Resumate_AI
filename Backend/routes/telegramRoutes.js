@@ -1,11 +1,22 @@
 const express = require('express');
 const router  = express.Router();
-const { saveTelegramUsername, handleWebhook } = require('../controllers/telegramController');
+const {
+  saveTelegramUsername,
+  handleWebhook,
+  setWebhook,
+  getWebhookInfo,
+} = require('../controllers/telegramController');
 
-// Save username when user submits the onboarding form
+// POST /api/telegram/save-user   — save Telegram username from frontend form
 router.post('/save-user', saveTelegramUsername);
 
-// Telegram calls this automatically when someone messages your bot
+// POST /api/telegram/webhook     — Telegram calls this on every message
 router.post('/webhook', handleWebhook);
+
+// GET  /api/telegram/set-webhook — call once to register the webhook with Telegram
+router.get('/set-webhook', setWebhook);
+
+// GET  /api/telegram/webhook-info — check current webhook status
+router.get('/webhook-info', getWebhookInfo);
 
 module.exports = router;

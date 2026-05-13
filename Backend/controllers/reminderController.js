@@ -14,12 +14,23 @@ const sendDailyReminders = async () => {
   const token  = process.env.TELEGRAM_BOT_TOKEN;
   const appUrl = process.env.APP_URL || 'https://yourapp.com';
 
-  // Skip users who already practiced today
+  // ── Ensure the column exists (safe to run every time) ──
+  await pool.query(`
+    ALTER TABLE users
+    ADD COLUMN IF NOT EXISTS last_session_date DATE
+  `);
+
+  // Only send to users who:
+  //   1. Have a linked chat_id
+  //   2. Have NOT practiced today (or have never practiced)
   const result = await pool.query(`
-    SELECT id, telegram_chat_id 
-    FROM users 
+    SELECT id, telegram_chat_id
+    FROM users
     WHERE telegram_chat_id IS NOT NULL
-      AND (last_session_date IS NULL OR last_session_date < CURRENT_DATE)
+      AND (
+        last_session_date IS NULL
+        OR last_session_date < CURRENT_DATE
+      )
   `);
 
   const users = result.rows;
@@ -60,11 +71,14 @@ const sendDailyReminders = async () => {
       } else {
         failed++;
         if (data.error_code === 403) {
+          // User blocked the bot — clear chat_id so we stop trying
           await pool.query(
             `UPDATE users SET telegram_chat_id = NULL WHERE id = $1`,
             [user.id]
           );
           console.warn(`⚠️ User ${user.id} blocked bot — chat_id cleared`);
+        } else {
+          console.error(`❌ Telegram error for user ${user.id}:`, data);
         }
       }
     } catch (err) {
