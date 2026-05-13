@@ -53,12 +53,11 @@ app.use('/api/streak',    streakRoutes);
 app.use('/api/dsa-plan',  dsaPlanRoutes);
 app.use('/api/session', sessionRoutes);
 
-// 9 AM IST = 3:30 AM UTC daily
-cron.schedule('30 16 * * *', () => {
+
+cron.schedule('0 0 * * *', () => {
   console.log('⏰ Running daily reminder cron...');
   sendDailyReminders().catch(console.error);
 });
-
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
