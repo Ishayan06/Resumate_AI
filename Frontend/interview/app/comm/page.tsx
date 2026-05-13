@@ -54,7 +54,10 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
         const clean = username.replace(/^@/, "").trim();
 
         // ── get real userId from localStorage (adjust key if needed) ──
-        const authRaw = localStorage.getItem("user") || localStorage.getItem("authUser") || "{}";
+        const authRaw =
+          localStorage.getItem("user") ||
+          localStorage.getItem("authUser") ||
+          "{}";
         let userId: string | null = null;
         try {
           const parsed = JSON.parse(authRaw);
@@ -83,10 +86,7 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
         setSaved(true);
 
         // pass real userId so bot can link the chat_id
-        window.open(
-          `https://t.me/${BOT_USERNAME}?start=${userId}`,
-          "_blank"
-        );
+        window.open(`https://t.me/${BOT_USERNAME}?start=${userId}`, "_blank");
 
         await new Promise((r) => setTimeout(r, 2000));
       }
@@ -341,7 +341,7 @@ const PROMPTS = [
 const fmt = (s: number) =>
   `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(
     2,
-    "0"
+    "0",
   )}`;
 
 const MainPage = () => {
@@ -380,6 +380,7 @@ const MainPage = () => {
 
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          videoRef.current.play().catch(console.error);
         }
 
         setCameraReady(true);
@@ -494,6 +495,7 @@ const MainPage = () => {
                   width: "100%",
                   height: "100%",
                   objectFit: "cover",
+                  transform: "scaleX(-1)", // mirrors like a selfie camera
                 }}
               />
             ) : (
