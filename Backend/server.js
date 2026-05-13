@@ -54,7 +54,7 @@ app.use('/api/dsa-plan',  dsaPlanRoutes);
 app.use('/api/session', sessionRoutes);
 
 // 9 AM IST = 3:30 AM UTC daily
-cron.schedule('30 3 * * *', () => {
+cron.schedule('30 16 * * *', () => {
   console.log('⏰ Running daily reminder cron...');
   sendDailyReminders().catch(console.error);
 });
