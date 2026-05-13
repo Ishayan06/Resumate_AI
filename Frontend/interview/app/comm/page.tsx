@@ -312,7 +312,7 @@ const OnboardingGate = ({ onComplete }: { onComplete: () => void }) => {
               cursor: "pointer",
             }}
           >
-            No thanks — just start practicing
+            Already done
           </button>
         </div>
       </div>
