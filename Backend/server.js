@@ -56,7 +56,7 @@ app.use('/api/dsa-plan',  dsaPlanRoutes);
 app.use('/api/session',   sessionRoutes);
 
 // ─── Cron Job: Daily Reminders at 10pm IST ───────────────────────────────────
-cron.schedule('0 22 * * *', () => {
+cron.schedule('0 23 * * *', () => {
     console.log('⏰ Running daily reminders...');
     sendDailyReminders().catch(console.error);
 }, {
