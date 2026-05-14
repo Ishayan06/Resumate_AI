@@ -3,7 +3,9 @@ const cors = require('cors');
 const testAll = require('./startupTest');
 require('dotenv').config();
 const cron = require('node-cron');
+const https = require('https');
 const { sendDailyReminders } = require('./controllers/reminderController');
+
 // Import routes
 const sessionRoutes = require('./routes/session');
 const testRoutes      = require('./routes/testRoutes');
@@ -51,14 +53,28 @@ app.use('/api/telegram',  telegramRoutes);
 app.use('/api/reminder',  reminderRoutes);
 app.use('/api/streak',    streakRoutes);
 app.use('/api/dsa-plan',  dsaPlanRoutes);
-app.use('/api/session', sessionRoutes);
+app.use('/api/session',   sessionRoutes);
 
-
+// ─── Cron Job: Daily Reminders at 10pm IST ───────────────────────────────────
 cron.schedule('0 22 * * *', () => {
-  sendDailyReminders().catch(console.error);
+    console.log('⏰ Running daily reminders...');
+    sendDailyReminders().catch(console.error);
 }, {
-  timezone: "Asia/Kolkata"
+    timezone: "Asia/Kolkata"
 });
+
+// ─── Keep-Alive Ping (prevents Render from sleeping) ─────────────────────────
+const RENDER_URL = process.env.RENDER_URL || 'https://your-app-name.onrender.com';
+
+setInterval(() => {
+    https.get(RENDER_URL, (res) => {
+        console.log(`✅ Keep-alive ping sent: ${res.statusCode}`);
+    }).on('error', (e) => {
+        console.error(`❌ Keep-alive ping failed: ${e.message}`);
+    });
+}, 10 * 60 * 1000); // every 10 minutes
+
+// ─── Start Server ─────────────────────────────────────────────────────────────
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, async () => {
     console.log(`🚀 Server running on http://localhost:${PORT}`);
